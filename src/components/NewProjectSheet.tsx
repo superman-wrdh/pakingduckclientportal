@@ -63,6 +63,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
         client: formData.client,
         status: "project initiation" as const,
         due_date: formData.dueDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        description: formData.description,
       };
 
       const newProject = await createProject(projectData);

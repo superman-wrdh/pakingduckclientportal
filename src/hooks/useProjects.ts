@@ -12,6 +12,7 @@ export interface Project {
   user_id: string;
   created_at: string;
   updated_at: string;
+  description?: string;
 }
 
 export interface CreateProjectData {
@@ -20,6 +21,7 @@ export interface CreateProjectData {
   status: string;
   due_date: string;
   type: string;
+  description?: string;
 }
 
 export const useProjects = () => {

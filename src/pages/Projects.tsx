@@ -597,20 +597,20 @@ const Projects = () => {
                           <h4 className="text-sm font-medium text-muted-foreground mb-1">Due Date</h4>
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <p>{new Date(selectedProject.dueDate).toLocaleDateString()}</p>
+                            <p>{new Date(selectedProject.due_date).toLocaleDateString()}</p>
                           </div>
                         </div>
                       </div>
                       
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Description</h4>
-                        <p className="text-muted-foreground leading-relaxed">
-                          This is a comprehensive {selectedProject.type.toLowerCase()} project for {user?.user_metadata?.company || selectedProject.client}. 
-                          The project involves creating innovative packaging solutions that align with the client's brand identity 
-                          and sustainability goals. Currently in {selectedProject.status.toLowerCase()} phase, with an expected 
-                          completion date of {new Date(selectedProject.dueDate).toLocaleDateString()}.
-                        </p>
-                      </div>
+                       <div>
+                         <h4 className="text-sm font-medium text-muted-foreground mb-2">Description</h4>
+                         <p className="text-muted-foreground leading-relaxed">
+                           {selectedProject.description || `This is a comprehensive ${selectedProject.type.toLowerCase()} project for ${user?.user_metadata?.company || selectedProject.client}. 
+                           The project involves creating innovative packaging solutions that align with the client's brand identity 
+                           and sustainability goals. Currently in ${selectedProject.status.toLowerCase()} phase, with an expected 
+                           completion date of ${new Date(selectedProject.due_date).toLocaleDateString()}.`}
+                         </p>
+                       </div>
 
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-3">Project Timeline</h4>
@@ -629,7 +629,7 @@ const Projects = () => {
                           </div>
                           <div className="flex justify-between items-center py-2">
                             <span className="font-medium">Final Delivery</span>
-                            <span className="text-muted-foreground">{new Date(selectedProject.dueDate).toLocaleDateString()}</span>
+                            <span className="text-muted-foreground">{new Date(selectedProject.due_date).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
@@ -876,7 +876,7 @@ const Projects = () => {
                           <div className="space-y-2">
                             <div className="flex justify-between">
                               <span className="text-sm text-muted-foreground">Estimated Delivery:</span>
-                              <span className="text-sm font-medium">{new Date(selectedProject.dueDate).toLocaleDateString()}</span>
+                              <span className="text-sm font-medium">{new Date(selectedProject.due_date).toLocaleDateString()}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-sm text-muted-foreground">Shipping Method:</span>
