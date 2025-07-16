@@ -1,9 +1,12 @@
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +15,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function Header() {
+  const { signOut, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to sign out. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Signed out",
+          description: "You have been successfully signed out."
+        });
+        navigate("/signin");
+      }
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
+  };
   return (
     <header className="h-14 bg-card border-b border-border flex items-center justify-between px-6 shrink-0">
       <SidebarTrigger />
@@ -34,15 +64,18 @@ export function Header() {
                 <AvatarImage src="" />
                 <AvatarFallback className="bg-warning text-warning-foreground text-xs">IB</AvatarFallback>
               </Avatar>
-              <div className="text-left hidden md:block">
-                <div className="text-sm font-medium truncate max-w-20">ING Bank</div>
-                <div className="text-xs text-muted-foreground truncate max-w-20">Operation</div>
-              </div>
+               <div className="text-left hidden md:block">
+                 <div className="text-sm font-medium truncate max-w-20">{user?.user_metadata?.company || "Company"}</div>
+                 <div className="text-xs text-muted-foreground truncate max-w-20">{user?.email}</div>
+               </div>
               <ChevronDown className="h-4 w-4 hidden sm:block" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+             <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+               <LogOut className="mr-2 h-4 w-4" />
+               Sign out
+             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
