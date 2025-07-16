@@ -10,11 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Package, Eye, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Truck, Palette, MessageSquare, FileText, Download, Upload, File, Loader2 } from "lucide-react";
 import { NewProjectSheet } from "@/components/NewProjectSheet";
 import { useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
 
 const Projects = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -657,12 +658,7 @@ const Projects = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => {
-                              const chatWindow = window.open('/chat', '_blank', 'width=800,height=600');
-                              if (chatWindow) {
-                                chatWindow.focus();
-                              }
-                            }}
+                            onClick={() => navigate('/chat')}
                           >
                             <MessageSquare className="h-4 w-4 mr-2" />
                             Contact
