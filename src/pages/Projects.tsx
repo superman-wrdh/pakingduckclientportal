@@ -263,134 +263,136 @@ const Projects = () => {
                     Showing {getPaginatedProjects().projects.length} of {getPaginatedProjects().totalProjects} projects
                   </CardDescription>
                 </CardHeader>
-                 <CardContent>
-                   {loading ? (
-                     <div className="flex items-center justify-center py-8">
-                       <Loader2 className="h-8 w-8 animate-spin" />
-                       <span className="ml-2">Loading projects...</span>
-                     </div>
-                   ) : (
-                     <Table>
-                       <TableHeader>
-                         <TableRow>
-                           <TableHead>Project Name</TableHead>
-                           <TableHead>Client</TableHead>
-                           <TableHead>Type</TableHead>
-                           <TableHead>Status</TableHead>
-                           <TableHead>Due Date</TableHead>
-                           <TableHead className="text-right">Actions</TableHead>
-                         </TableRow>
-                       </TableHeader>
-                       <TableBody>
-                         {getPaginatedProjects().projects.map((project) => (
-                        <TableRow key={project.id}>
-                          <TableCell className="font-medium">{project.name}</TableCell>
-                          <TableCell>{project.client}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              <Package className="h-4 w-4 mr-2 text-muted-foreground" />
-                              {project.type}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(project.status)}>
-                              {project.status}
-                            </Badge>
-                          </TableCell>
-                           <TableCell>
-                             <div className="flex items-center">
-                               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                               {new Date(project.due_date).toLocaleDateString()}
-                             </div>
-                           </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedProject(project);
-                                setIsSheetOpen(true);
-                              }}
-                              className="flex items-center gap-2"
-                            >
-                              <Eye className="h-4 w-4" />
-                              View
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  
-                  {/* Enhanced Pagination */}
-                  {getPaginatedProjects().totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-6">
-                      <div className="text-sm text-muted-foreground">
-                        {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, getPaginatedProjects().totalProjects)} of {getPaginatedProjects().totalProjects} items
+                  <CardContent>
+                    {loading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <span className="ml-2">Loading projects...</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(1)}
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronsLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        {getPageNumbers(getPaginatedProjects().totalPages).map((pageNum) => (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className="min-w-[32px]"
-                          >
-                            {pageNum}
-                          </Button>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, getPaginatedProjects().totalPages))}
-                          disabled={currentPage === getPaginatedProjects().totalPages}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(getPaginatedProjects().totalPages)}
-                          disabled={currentPage === getPaginatedProjects().totalPages}
-                        >
-                          <ChevronsRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Items per page</span>
-                        <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-                          <SelectTrigger className="w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background border z-50">
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                   )}
-                   )}
-                 </CardContent>
+                    ) : (
+                      <>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Project Name</TableHead>
+                              <TableHead>Client</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Due Date</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {getPaginatedProjects().projects.map((project) => (
+                           <TableRow key={project.id}>
+                             <TableCell className="font-medium">{project.name}</TableCell>
+                             <TableCell>{project.client}</TableCell>
+                             <TableCell>
+                               <div className="flex items-center">
+                                 <Package className="h-4 w-4 mr-2 text-muted-foreground" />
+                                 {project.type}
+                               </div>
+                             </TableCell>
+                             <TableCell>
+                               <Badge className={getStatusColor(project.status)}>
+                                 {project.status}
+                               </Badge>
+                             </TableCell>
+                              <TableCell>
+                                <div className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                  {new Date(project.due_date).toLocaleDateString()}
+                                </div>
+                              </TableCell>
+                             <TableCell className="text-right">
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => {
+                                   setSelectedProject(project);
+                                   setIsSheetOpen(true);
+                                 }}
+                                 className="flex items-center gap-2"
+                               >
+                                 <Eye className="h-4 w-4" />
+                                 View
+                               </Button>
+                             </TableCell>
+                           </TableRow>
+                         ))}
+                       </TableBody>
+                     </Table>
+                     
+                     {/* Enhanced Pagination */}
+                     {getPaginatedProjects().totalPages > 1 && (
+                       <div className="flex items-center justify-between mt-6">
+                         <div className="text-sm text-muted-foreground">
+                           {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, getPaginatedProjects().totalProjects)} of {getPaginatedProjects().totalProjects} items
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => setCurrentPage(1)}
+                             disabled={currentPage === 1}
+                           >
+                             <ChevronsLeft className="h-4 w-4" />
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                             disabled={currentPage === 1}
+                           >
+                             <ChevronLeft className="h-4 w-4" />
+                           </Button>
+                           {getPageNumbers(getPaginatedProjects().totalPages).map((pageNum) => (
+                             <Button
+                               key={pageNum}
+                               variant={currentPage === pageNum ? "default" : "outline"}
+                               size="sm"
+                               onClick={() => setCurrentPage(pageNum)}
+                               className="min-w-[32px]"
+                             >
+                               {pageNum}
+                             </Button>
+                           ))}
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, getPaginatedProjects().totalPages))}
+                             disabled={currentPage === getPaginatedProjects().totalPages}
+                           >
+                             <ChevronRight className="h-4 w-4" />
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => setCurrentPage(getPaginatedProjects().totalPages)}
+                             disabled={currentPage === getPaginatedProjects().totalPages}
+                           >
+                             <ChevronsRight className="h-4 w-4" />
+                           </Button>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <span className="text-sm text-muted-foreground">Items per page</span>
+                           <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                             <SelectTrigger className="w-16">
+                               <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent className="bg-background border z-50">
+                               <SelectItem value="5">5</SelectItem>
+                               <SelectItem value="10">10</SelectItem>
+                               <SelectItem value="20">20</SelectItem>
+                               <SelectItem value="50">50</SelectItem>
+                             </SelectContent>
+                           </Select>
+                         </div>
+                        </div>
+                      )}
+                      </>
+                    )}
+                  </CardContent>
                </Card>
              </div>
           ) : (
