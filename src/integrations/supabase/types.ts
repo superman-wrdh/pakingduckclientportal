@@ -56,6 +56,42 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          company_name: string
+          created_at: string
+          email: string
+          id: string
+          point_of_contact: string
+          sent_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          email: string
+          id?: string
+          point_of_contact: string
+          sent_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          point_of_contact?: string
+          sent_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number

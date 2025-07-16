@@ -8,101 +8,47 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Send, UserPlus, Clock, CheckCircle, XCircle, Mail } from "lucide-react";
-
-interface Invite {
-  id: string;
-  companyName: string;
-  pointOfContact: string;
-  email: string;
-  status: "pending" | "accepted" | "declined";
-  sentDate: string;
-}
+import { useInvitations, type Invitation } from "@/hooks/useInvitations";
+import { useAuth } from "@/hooks/useAuth";
 
 const Invite = () => {
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { invitations, loading, createInvitation } = useInvitations();
   const [companyName, setCompanyName] = useState("");
   const [pointOfContact, setPointOfContact] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for existing invites
-  const [invites, setInvites] = useState<Invite[]>([
-    {
-      id: "1",
-      companyName: "TechStart Inc.",
-      pointOfContact: "John Smith",
-      email: "john@techstart.com",
-      status: "accepted",
-      sentDate: "2024-01-15"
-    },
-    {
-      id: "2",
-      companyName: "Innovation Labs",
-      pointOfContact: "Sarah Johnson",
-      email: "sarah@innovationlabs.com",
-      status: "pending",
-      sentDate: "2024-01-10"
-    },
-    {
-      id: "3",
-      companyName: "Future Corp",
-      pointOfContact: "Mike Wilson",
-      email: "mike@futurecorp.com",
-      status: "declined",
-      sentDate: "2024-01-08"
-    }
-  ]);
-
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!companyName || !pointOfContact || !email) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      return;
+    }
+
+    if (!user) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const newInvite: Invite = {
-        id: String(invites.length + 1),
-        companyName,
-        pointOfContact,
-        email,
-        status: "pending",
-        sentDate: new Date().toISOString().split('T')[0]
-      };
-
-      setInvites(prev => [newInvite, ...prev]);
-
-      toast({
-        title: "Invite Sent",
-        description: `Invitation sent to ${pointOfContact} at ${companyName}`,
-      });
-
-      // Clear form
-      setCompanyName("");
-      setPointOfContact("");
-      setEmail("");
+      const success = await createInvitation(companyName, pointOfContact, email);
+      
+      if (success) {
+        // Clear form
+        setCompanyName("");
+        setPointOfContact("");
+        setEmail("");
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send invite. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error sending invite:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusBadge = (status: Invite["status"]) => {
+  const getStatusBadge = (status: Invitation["status"]) => {
     switch (status) {
       case "accepted":
         return (
@@ -219,7 +165,7 @@ const Invite = () => {
                   <span className="font-medium">Accepted</span>
                 </div>
                 <span className="text-2xl font-bold text-green-600">
-                  {invites.filter(i => i.status === "accepted").length}
+                  {invitations.filter(i => i.status === "accepted").length}
                 </span>
               </div>
               
@@ -229,7 +175,7 @@ const Invite = () => {
                   <span className="font-medium">Pending</span>
                 </div>
                 <span className="text-2xl font-bold text-yellow-600">
-                  {invites.filter(i => i.status === "pending").length}
+                  {invitations.filter(i => i.status === "pending").length}
                 </span>
               </div>
               
@@ -239,7 +185,7 @@ const Invite = () => {
                   <span className="font-medium">Declined</span>
                 </div>
                 <span className="text-2xl font-bold text-red-600">
-                  {invites.filter(i => i.status === "declined").length}
+                  {invitations.filter(i => i.status === "declined").length}
                 </span>
               </div>
             </div>
@@ -270,23 +216,23 @@ const Invite = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invites.map((invite) => (
-                <TableRow key={invite.id}>
+              {invitations.map((invitation) => (
+                <TableRow key={invitation.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="text-xs">
-                          {getInitials(invite.pointOfContact)}
+                          {getInitials(invitation.point_of_contact)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{invite.pointOfContact}</span>
+                      <span className="font-medium">{invitation.point_of_contact}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{invite.companyName}</TableCell>
-                  <TableCell className="text-muted-foreground">{invite.email}</TableCell>
-                  <TableCell>{getStatusBadge(invite.status)}</TableCell>
+                  <TableCell>{invitation.company_name}</TableCell>
+                  <TableCell className="text-muted-foreground">{invitation.email}</TableCell>
+                  <TableCell>{getStatusBadge(invitation.status)}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(invite.sentDate).toLocaleDateString()}
+                    {new Date(invitation.sent_date).toLocaleDateString()}
                   </TableCell>
                 </TableRow>
               ))}
