@@ -12,91 +12,108 @@ import {
   TrendingUp,
   Calendar,
   Users,
-  BarChart3
+  BarChart3,
+  Loader2
 } from "lucide-react";
 import { NewProjectSheet } from "@/components/NewProjectSheet";
+import { useProjects } from "@/hooks/useProjects";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
-  const projects = [
-    {
-      id: 1,
-      name: "Artisan Coffee Packaging",
-      client: "Bean & Brew Co.",
-      status: "Manufacturing",
-      progress: 75,
-      phase: "Quality Testing",
-      dueDate: "Dec 15, 2024",
-      team: 4
-    },
-    {
-      id: 2,
-      name: "Premium Tea Collection",
-      client: "Zen Tea House",
-      status: "Shipping",
-      progress: 95,
-      phase: "In Transit",
-      dueDate: "Dec 10, 2024",
-      team: 3
-    },
-    {
-      id: 3,
-      name: "Energy Drink Labels",
-      client: "Power Sports Inc.",
-      status: "Design",
-      progress: 40,
-      phase: "Client Review",
-      dueDate: "Dec 20, 2024",
-      team: 5
-    },
-    {
-      id: 4,
-      name: "Luxury Wine Bottles",
-      client: "Vintage Estates",
-      status: "Complete",
-      progress: 100,
-      phase: "Delivered",
-      dueDate: "Dec 5, 2024",
-      team: 6
-    }
-  ];
+  const { projects, loading } = useProjects();
+  const { user } = useAuth();
 
-  const stats = [
+  // Calculate real stats from project data
+  const getProjectStats = () => {
+    const totalProjects = projects.length;
+    const activeProjects = projects.filter(p => p.status !== "completed").length;
+    const completedProjects = projects.filter(p => p.status === "completed").length;
+    const inManufacturing = projects.filter(p => 
+      p.status === "production" || p.status === "testing & refinement"
+    ).length;
+    const readyToShip = projects.filter(p => 
+      p.status === "delivering"
+    ).length;
+
+    return {
+      totalProjects,
+      activeProjects,
+      completedProjects,
+      inManufacturing,
+      readyToShip
+    };
+  };
+
+  const stats = getProjectStats();
+
+  const statsCards = [
     {
       title: "Active Projects",
-      value: "12",
-      change: "+2 from last month",
+      value: stats.activeProjects.toString(),
+      change: `${stats.totalProjects} total projects`,
       icon: Package,
       color: "text-blue-600"
     },
     {
       title: "In Manufacturing",
-      value: "8",
-      change: "+3 this week",
+      value: stats.inManufacturing.toString(),
+      change: "Production & testing",
       icon: Factory,
       color: "text-orange-600"
     },
     {
       title: "Ready to Ship",
-      value: "5",
-      change: "2 shipped today",
+      value: stats.readyToShip.toString(),
+      change: "Awaiting delivery",
       icon: Truck,
       color: "text-green-600"
     },
     {
       title: "Completed",
-      value: "127",
-      change: "+15 this month",
+      value: stats.completedProjects.toString(),
+      change: "Successfully delivered",
       icon: CheckCircle,
       color: "text-purple-600"
     }
   ];
 
+  // Calculate progress percentage based on project status
+  const getProjectProgress = (status: string) => {
+    switch (status) {
+      case "project initiation": return 10;
+      case "design development": return 30;
+      case "prototyping": return 50;
+      case "testing & refinement": return 70;
+      case "production": return 85;
+      case "delivering": return 95;
+      case "completed": return 100;
+      default: return 0;
+    }
+  };
+
+  // Map project status to display names
+  const getDisplayStatus = (status: string) => {
+    switch (status) {
+      case "project initiation": return "Initiation";
+      case "design development": return "Design";
+      case "prototyping": return "Prototyping";
+      case "testing & refinement": return "Testing";
+      case "production": return "Manufacturing";
+      case "delivering": return "Shipping";
+      case "completed": return "Complete";
+      default: return status;
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Design": return "bg-blue-100 text-blue-800";
-      case "Manufacturing": return "bg-orange-100 text-orange-800";
-      case "Shipping": return "bg-yellow-100 text-yellow-800";
-      case "Complete": return "bg-green-100 text-green-800";
+      case "project initiation": return "bg-blue-100 text-blue-800";
+      case "design development": return "bg-purple-100 text-purple-800";
+      case "prototyping": return "bg-indigo-100 text-indigo-800";
+      case "testing & refinement": return "bg-yellow-100 text-yellow-800";
+      case "production": return "bg-orange-100 text-orange-800";
+      case "delivering": return "bg-cyan-100 text-cyan-800";
+      case "completed": return "bg-green-100 text-green-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -112,7 +129,7 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
+        {statsCards.map((stat, index) => (
           <Card key={index}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -142,38 +159,50 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {projects.map((project) => (
-                <div key={project.id} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <h4 className="font-medium">{project.name}</h4>
-                      <p className="text-sm text-muted-foreground">{project.client}</p>
-                    </div>
-                    <Badge className={getStatusColor(project.status)}>
-                      {project.status}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{project.phase}</span>
-                      <span className="font-medium">{project.progress}%</span>
-                    </div>
-                    <Progress value={project.progress} className="h-2" />
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {project.dueDate}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {project.team} team members
-                    </div>
-                  </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2">Loading projects...</span>
                 </div>
-              ))}
+              ) : projects.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No projects found. Create your first project to get started!</p>
+                </div>
+              ) : (
+                projects.slice(0, 4).map((project) => (
+                  <div key={project.id} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <h4 className="font-medium">{project.name}</h4>
+                        <p className="text-sm text-muted-foreground">{user?.user_metadata?.company || project.client}</p>
+                      </div>
+                      <Badge className={getStatusColor(project.status)}>
+                        {getDisplayStatus(project.status)}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{project.status}</span>
+                        <span className="font-medium">{getProjectProgress(project.status)}%</span>
+                      </div>
+                      <Progress value={getProjectProgress(project.status)} className="h-2" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(project.due_date).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {project.type}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
@@ -207,35 +236,32 @@ const Dashboard = () => {
               <CardTitle className="text-lg">Recent Updates</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="p-1 bg-green-100 rounded">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Tea Collection Shipped</p>
-                  <p className="text-xs text-muted-foreground">Tracking: TC2024001</p>
-                </div>
-              </div>
+              {projects.slice(0, 3).map((project, index) => {
+                const icons = [CheckCircle, Factory, Clock];
+                const colors = ["green", "orange", "blue"];
+                const IconComponent = icons[index % icons.length];
+                const color = colors[index % colors.length];
+                
+                return (
+                  <div key={project.id} className="flex items-start gap-3">
+                    <div className={`p-1 bg-${color}-100 rounded`}>
+                      <IconComponent className={`h-4 w-4 text-${color}-600`} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{project.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Status: {getDisplayStatus(project.status)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
               
-              <div className="flex items-start gap-3">
-                <div className="p-1 bg-orange-100 rounded">
-                  <Factory className="h-4 w-4 text-orange-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Coffee Packaging in QA</p>
-                  <p className="text-xs text-muted-foreground">Quality testing phase</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-1 bg-blue-100 rounded">
-                  <Clock className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Energy Drink Review</p>
-                  <p className="text-xs text-muted-foreground">Awaiting client feedback</p>
-                </div>
-              </div>
+              {projects.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No recent updates. Create a project to see activity here.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
