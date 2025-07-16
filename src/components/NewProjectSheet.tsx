@@ -12,17 +12,19 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useProjects } from "@/hooks/useProjects";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NewProjectSheetProps {
   children?: React.ReactNode;
 }
 
 export function NewProjectSheet({ children }: NewProjectSheetProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     type: "",
-    client: "ING BANK",
+    client: user?.user_metadata?.company || "ING BANK",
     description: "",
     dueDate: undefined as Date | undefined,
   });
@@ -63,7 +65,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
         setFormData({
           name: "",
           type: "",
-          client: "ING BANK",
+          client: user?.user_metadata?.company || "ING BANK",
           description: "",
           dueDate: undefined,
         });
