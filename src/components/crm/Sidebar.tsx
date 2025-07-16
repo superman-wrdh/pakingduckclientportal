@@ -7,7 +7,6 @@ import {
   FolderOpen,
   MessageCircle,
   CreditCard,
-  BarChart3,
   Settings,
   Bell,
   User,
@@ -75,7 +74,7 @@ const workspaceItems = [
   },
   { title: "Chat", url: "/chat", icon: MessageCircle },
   { title: "Payment", url: "/payment", icon: CreditCard },
-  { title: "Statistics", url: "/statistics", icon: BarChart3 },
+  
   { title: "Invite", url: "/invite", icon: UserPlus },
 ];
 

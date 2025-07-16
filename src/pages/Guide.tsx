@@ -62,7 +62,7 @@ const Guide = () => {
     "Use the search bar to quickly find projects or team members",
     "Set up notifications to stay updated on project progress",
     "Leverage Duck AI for quick answers and design suggestions",
-    "Export reports from the Statistics page for client presentations",
+    "Export reports for client presentations",
     "Keep your payment information updated for seamless transactions"
   ];
 
@@ -135,15 +135,6 @@ const Guide = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <h4 className="font-medium flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Statistics
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                View project analytics, timeline reports, and performance metrics
-              </p>
-            </div>
             <div className="space-y-2">
               <h4 className="font-medium flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />

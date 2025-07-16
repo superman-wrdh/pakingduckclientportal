@@ -15,7 +15,7 @@ import DuckAI from "./pages/DuckAI";
 import Profile from "./pages/Profile";
 import Chat from "./pages/Chat";
 import Payment from "./pages/Payment";
-import Statistics from "./pages/Statistics";
+
 import Invite from "./pages/Invite";
 import UpdatedSettings from "./pages/UpdatedSettings";
 import SignIn from "./pages/SignIn";
@@ -94,11 +94,6 @@ const App = () => (
           <Route path="/payment" element={
             <CRMLayout>
               <Payment />
-            </CRMLayout>
-          } />
-          <Route path="/statistics" element={
-            <CRMLayout>
-              <Statistics />
             </CRMLayout>
           } />
           <Route path="/invite" element={
