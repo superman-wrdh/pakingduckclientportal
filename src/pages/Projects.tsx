@@ -4,19 +4,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Package, Eye, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Truck, Palette, MessageSquare, FileText, Download, Upload, File, Loader2 } from "lucide-react";
+import { Calendar, Package, Eye, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Truck, Palette, MessageSquare, FileText, Download, Upload, File, Loader2, Edit, Trash2 } from "lucide-react";
 import { NewProjectSheet } from "@/components/NewProjectSheet";
 import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Projects = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -31,6 +36,13 @@ const Projects = () => {
   const [feedback, setFeedback] = useState("");
   const [newAnnotation, setNewAnnotation] = useState<{x: number, y: number} | null>(null);
   const [selectedPastDesign, setSelectedPastDesign] = useState<any>(null);
+  
+  // Edit and Delete states
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: "", description: "" });
+  
   const location = useLocation();
   
   
@@ -48,6 +60,62 @@ const Projects = () => {
       case "delivering": return "bg-cyan-100 text-cyan-800";
       case "completed": return "bg-green-100 text-green-800";
       default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Handle edit project
+  const handleEditProject = async () => {
+    if (!editingProject) return;
+    
+    try {
+      await updateProject(editingProject.id, {
+        name: editForm.name,
+        description: editForm.description
+      });
+      
+      toast({
+        title: "Success",
+        description: "Project updated successfully",
+      });
+      
+      setIsEditDialogOpen(false);
+      setEditingProject(null);
+      setEditForm({ name: "", description: "" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update project",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle delete project
+  const handleDeleteProject = async () => {
+    if (!editingProject) return;
+    
+    try {
+      await deleteProject(editingProject.id);
+      
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+      
+      setIsDeleteDialogOpen(false);
+      setEditingProject(null);
+      
+      // Close sheet if this project was selected
+      if (selectedProject?.id === editingProject.id) {
+        setIsSheetOpen(false);
+        setSelectedProject(null);
+      }
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to delete project",
+        variant: "destructive",
+      });
     }
   };
 
@@ -307,20 +375,44 @@ const Projects = () => {
                                   {new Date(project.due_date).toLocaleDateString()}
                                 </div>
                               </TableCell>
-                             <TableCell className="text-right">
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 onClick={() => {
-                                   setSelectedProject(project);
-                                   setIsSheetOpen(true);
-                                 }}
-                                 className="flex items-center gap-2"
-                               >
-                                 <Eye className="h-4 w-4" />
-                                 View
-                               </Button>
-                             </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingProject(project);
+                                      setEditForm({ name: project.name, description: project.description || "" });
+                                      setIsEditDialogOpen(true);
+                                    }}
+                                    className="h-8 w-8 p-0 hover:bg-muted"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingProject(project);
+                                      setIsDeleteDialogOpen(true);
+                                    }}
+                                    className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedProject(project);
+                                      setIsSheetOpen(true);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    View
+                                  </Button>
+                                </div>
+                              </TableCell>
                            </TableRow>
                          ))}
                        </TableBody>
@@ -570,12 +662,6 @@ const Projects = () => {
                         <Badge className={getStatusColor(selectedProject.status)}>
                           {selectedProject.status}
                         </Badge>
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Progress: 65%</p>
-                          <div className="w-full bg-secondary rounded-full h-2">
-                            <div className="bg-primary h-2 rounded-full" style={{ width: '65%' }}></div>
-                          </div>
-                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -1304,7 +1390,68 @@ const Projects = () => {
                 </TabsContent>
              </Tabs>
            </SheetContent>
-         </Sheet>
+          </Sheet>
+
+          {/* Edit Project Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit Project</DialogTitle>
+                <DialogDescription>
+                  Make changes to your project here. Click save when you're done.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Project Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    placeholder="Enter project name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    placeholder="Enter project description"
+                    rows={4}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEditProject}>
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Delete Project</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete "{editingProject?.name}"? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteProject}>
+                  Delete Project
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
        </main>
      );
    };
