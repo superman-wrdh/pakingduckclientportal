@@ -48,7 +48,7 @@ export const usePaymentData = () => {
 
     try {
       const { data, error } = await supabase
-        .from('addresses')
+        .from('client_addresses')
         .select('*')
         .eq('user_id', user.id)
         .order('is_default', { ascending: false });
@@ -102,7 +102,7 @@ export const usePaymentData = () => {
 
     try {
       const { error } = await supabase
-        .from('addresses')
+        .from('client_addresses')
         .upsert({
           ...addressData,
           user_id: user.id,

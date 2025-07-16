@@ -69,7 +69,7 @@ const SignIn = () => {
               alt="Peking Duck Logo" 
               className="w-10 h-10"
             />
-            <span className="font-semibold text-2xl">Peking Duck</span>
+            <span className="font-semibold text-2xl">Paking Duck</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
           <p className="text-muted-foreground">Sign in to your account to continue</p>

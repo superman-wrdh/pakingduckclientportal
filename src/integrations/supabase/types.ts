@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      addresses: {
+      client_addresses: {
         Row: {
           city: string
           country: string
@@ -175,6 +175,39 @@ export type Database = {
           stripe_payment_method_id?: string | null
           type?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      portfolio_items: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          title?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
