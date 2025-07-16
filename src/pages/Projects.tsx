@@ -7,12 +7,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Package, Eye, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Truck, Palette, MessageSquare, FileText, Download, Upload, File } from "lucide-react";
+import { Calendar, Package, Eye, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Truck, Palette, MessageSquare, FileText, Download, Upload, File, Loader2 } from "lucide-react";
 import { NewProjectSheet } from "@/components/NewProjectSheet";
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { useProjects } from "@/hooks/useProjects";
 
 const Projects = () => {
+  const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,129 +34,6 @@ const Projects = () => {
   const currentView = location.pathname === "/projects/in-progress" ? "in-progress" 
                     : location.pathname === "/projects/completed" ? "completed" 
                     : "overview";
-
-  const projects = [
-    {
-      id: 1,
-      name: "Organic Tea Collection",
-      client: "Green Leaf Co.",
-      status: "design development",
-      dueDate: "2024-01-15",
-      type: "Food & Beverage"
-    },
-    {
-      id: 2,
-      name: "Luxury Perfume Box",
-      client: "Essence Beauty",
-      status: "testing & refinement",
-      dueDate: "2024-01-20",
-      type: "Cosmetics"
-    },
-    {
-      id: 3,
-      name: "Electronics Packaging",
-      client: "TechFlow Inc.",
-      status: "completed",
-      dueDate: "2023-12-30",
-      type: "Electronics"
-    },
-    {
-      id: 4,
-      name: "Artisan Chocolate Boxes",
-      client: "Sweet Dreams",
-      status: "project initiation",
-      dueDate: "2024-02-01",
-      type: "Food & Beverage"
-    },
-    {
-      id: 5,
-      name: "Premium Wine Labels",
-      client: "Vineyard Estate",
-      status: "prototyping",
-      dueDate: "2024-01-25",
-      type: "Food & Beverage"
-    },
-    {
-      id: 6,
-      name: "Tech Gadget Packaging",
-      client: "Innovation Labs",
-      status: "production",
-      dueDate: "2024-02-10",
-      type: "Electronics"
-    },
-    {
-      id: 7,
-      name: "Skincare Product Line",
-      client: "Beauty Co.",
-      status: "delivering",
-      dueDate: "2024-01-18",
-      type: "Cosmetics"
-    },
-    {
-      id: 8,
-      name: "Sustainable Coffee Bags",
-      client: "Earth Roasters",
-      status: "design development",
-      dueDate: "2024-02-15",
-      type: "Food & Beverage"
-    },
-    {
-      id: 9,
-      name: "Medical Device Packaging",
-      client: "HealthTech Solutions",
-      status: "testing & refinement",
-      dueDate: "2024-02-20",
-      type: "Medical"
-    },
-    {
-      id: 10,
-      name: "Jewelry Display Boxes",
-      client: "Elegance Jewelers",
-      status: "completed",
-      dueDate: "2023-12-15",
-      type: "Luxury"
-    },
-    {
-      id: 11,
-      name: "Sports Supplement Labels",
-      client: "FitLife Nutrition",
-      status: "production",
-      dueDate: "2024-02-05",
-      type: "Health & Wellness"
-    },
-    {
-      id: 12,
-      name: "Pet Food Packaging",
-      client: "Happy Paws",
-      status: "project initiation",
-      dueDate: "2024-02-28",
-      type: "Pet Care"
-    },
-    {
-      id: 13,
-      name: "Automotive Parts Boxes",
-      client: "SpeedTech Motors",
-      status: "prototyping",
-      dueDate: "2024-02-12",
-      type: "Automotive"
-    },
-    {
-      id: 14,
-      name: "Pharmaceutical Bottles",
-      client: "MediCare Pharma",
-      status: "delivering",
-      dueDate: "2024-01-30",
-      type: "Medical"
-    },
-    {
-      id: 15,
-      name: "Craft Beer Labels",
-      client: "Brewery Masters",
-      status: "completed",
-      dueDate: "2023-12-20",
-      type: "Food & Beverage"
-    }
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -384,20 +263,26 @@ const Projects = () => {
                     Showing {getPaginatedProjects().projects.length} of {getPaginatedProjects().totalProjects} projects
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Project Name</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Due Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getPaginatedProjects().projects.map((project) => (
+                 <CardContent>
+                   {loading ? (
+                     <div className="flex items-center justify-center py-8">
+                       <Loader2 className="h-8 w-8 animate-spin" />
+                       <span className="ml-2">Loading projects...</span>
+                     </div>
+                   ) : (
+                     <Table>
+                       <TableHeader>
+                         <TableRow>
+                           <TableHead>Project Name</TableHead>
+                           <TableHead>Client</TableHead>
+                           <TableHead>Type</TableHead>
+                           <TableHead>Status</TableHead>
+                           <TableHead>Due Date</TableHead>
+                           <TableHead className="text-right">Actions</TableHead>
+                         </TableRow>
+                       </TableHeader>
+                       <TableBody>
+                         {getPaginatedProjects().projects.map((project) => (
                         <TableRow key={project.id}>
                           <TableCell className="font-medium">{project.name}</TableCell>
                           <TableCell>{project.client}</TableCell>
@@ -412,12 +297,12 @@ const Projects = () => {
                               {project.status}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                              {new Date(project.dueDate).toLocaleDateString()}
-                            </div>
-                          </TableCell>
+                           <TableCell>
+                             <div className="flex items-center">
+                               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                               {new Date(project.due_date).toLocaleDateString()}
+                             </div>
+                           </TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="outline"
@@ -503,10 +388,11 @@ const Projects = () => {
                         </Select>
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                   )}
+                   )}
+                 </CardContent>
+               </Card>
+             </div>
           ) : (
             /* Filtered Projects View */
             <div className="mb-8">
