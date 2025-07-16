@@ -4,108 +4,147 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Download, Calendar, DollarSign, Edit, Save, X, MapPin } from "lucide-react";
+import { CreditCard, Download, Calendar, DollarSign, Edit, Save, X, MapPin, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePaymentData, Address } from "@/hooks/usePaymentData";
+import { useAuth } from "@/hooks/useAuth";
 
 const Payment = () => {
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { 
+    addresses, 
+    paymentMethods, 
+    invoices, 
+    loading, 
+    saveAddress, 
+    getAddressByType 
+  } = usePaymentData();
+  
   const [billAddressEdit, setBillAddressEdit] = useState(false);
   const [shipmentAddressEdit, setShipmentAddressEdit] = useState(false);
   
-  // Address states
+  // Get current addresses or initialize empty ones
+  const currentBillAddress = getAddressByType('billing');
+  const currentShipAddress = getAddressByType('shipping');
+  
   const [billAddress, setBillAddress] = useState({
-    street: "123 Main Street",
-    city: "New York",
-    state: "NY",
-    zipCode: "10001",
-    country: "United States"
+    street: currentBillAddress?.street || "",
+    city: currentBillAddress?.city || "",
+    state: currentBillAddress?.state || "",
+    zip_code: currentBillAddress?.zip_code || "",
+    country: currentBillAddress?.country || "United States"
   });
   
   const [shipmentAddress, setShipmentAddress] = useState({
-    street: "456 Oak Avenue",
-    city: "Los Angeles", 
-    state: "CA",
-    zipCode: "90210",
-    country: "United States"
+    street: currentShipAddress?.street || "",
+    city: currentShipAddress?.city || "",
+    state: currentShipAddress?.state || "",
+    zip_code: currentShipAddress?.zip_code || "",
+    country: currentShipAddress?.country || "United States"
   });
 
-  const invoices = [
-    {
-      id: "INV-2024-001",
-      date: "2024-01-01",
-      amount: 299.00,
-      status: "Paid",
-      description: "Monthly Subscription - Pro Plan"
-    },
-    {
-      id: "INV-2023-012",
-      date: "2023-12-01",
-      amount: 299.00,
-      status: "Paid",
-      description: "Monthly Subscription - Pro Plan"
-    },
-    {
-      id: "INV-2023-011",
-      date: "2023-11-01",
-      amount: 299.00,
-      status: "Paid",
-      description: "Monthly Subscription - Pro Plan"
-    },
-    {
-      id: "INV-2023-010",
-      date: "2023-10-01",
-      amount: 149.00,
-      status: "Paid",
-      description: "Monthly Subscription - Basic Plan"
+  // Update local state when data loads
+  useState(() => {
+    if (currentBillAddress) {
+      setBillAddress({
+        street: currentBillAddress.street,
+        city: currentBillAddress.city,
+        state: currentBillAddress.state,
+        zip_code: currentBillAddress.zip_code,
+        country: currentBillAddress.country
+      });
     }
-  ];
-
-  const paymentMethods = [
-    {
-      id: 1,
-      type: "Credit Card",
-      last4: "4242",
-      brand: "Visa",
-      expiryMonth: 12,
-      expiryYear: 2027,
-      isDefault: true
-    },
-    {
-      id: 2,
-      type: "Credit Card",
-      last4: "5555",
-      brand: "Mastercard",
-      expiryMonth: 8,
-      expiryYear: 2026,
-      isDefault: false
+    if (currentShipAddress) {
+      setShipmentAddress({
+        street: currentShipAddress.street,
+        city: currentShipAddress.city,
+        state: currentShipAddress.state,
+        zip_code: currentShipAddress.zip_code,
+        country: currentShipAddress.country
+      });
     }
-  ];
+  });
 
-  const handleSaveBillAddress = () => {
-    setBillAddressEdit(false);
-    toast({
-      title: "Success",
-      description: "Bill address updated successfully",
+  const handleSaveBillAddress = async () => {
+    await saveAddress({
+      type: 'billing',
+      street: billAddress.street,
+      city: billAddress.city,
+      state: billAddress.state,
+      zip_code: billAddress.zip_code,
+      country: billAddress.country,
+      is_default: true
     });
+    setBillAddressEdit(false);
   };
 
-  const handleSaveShipmentAddress = () => {
-    setShipmentAddressEdit(false);
-    toast({
-      title: "Success", 
-      description: "Shipment address updated successfully",
+  const handleSaveShipmentAddress = async () => {
+    await saveAddress({
+      type: 'shipping',
+      street: shipmentAddress.street,
+      city: shipmentAddress.city,
+      state: shipmentAddress.state,
+      zip_code: shipmentAddress.zip_code,
+      country: shipmentAddress.country,
+      is_default: true
     });
+    setShipmentAddressEdit(false);
   };
 
   const handleCancelBillEdit = () => {
     setBillAddressEdit(false);
-    // Reset to original values if needed
+    if (currentBillAddress) {
+      setBillAddress({
+        street: currentBillAddress.street,
+        city: currentBillAddress.city,
+        state: currentBillAddress.state,
+        zip_code: currentBillAddress.zip_code,
+        country: currentBillAddress.country
+      });
+    }
   };
 
   const handleCancelShipmentEdit = () => {
     setShipmentAddressEdit(false);
-    // Reset to original values if needed
+    if (currentShipAddress) {
+      setShipmentAddress({
+        street: currentShipAddress.street,
+        city: currentShipAddress.city,
+        state: currentShipAddress.state,
+        zip_code: currentShipAddress.zip_code,
+        country: currentShipAddress.country
+      });
+    }
   };
+
+  if (!user) {
+    return (
+      <main className="flex-1 p-6 bg-background overflow-y-auto">
+        <div className="max-w-6xl mx-auto">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">Please sign in to view your payment information.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
+
+  if (loading) {
+    return (
+      <main className="flex-1 p-6 bg-background overflow-y-auto">
+        <div className="max-w-6xl mx-auto">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading payment information...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 p-6 bg-background overflow-y-auto">
@@ -181,8 +220,8 @@ const Payment = () => {
                         <Label htmlFor="billZip">ZIP Code</Label>
                         <Input
                           id="billZip"
-                          value={billAddress.zipCode}
-                          onChange={(e) => setBillAddress({...billAddress, zipCode: e.target.value})}
+                           value={billAddress.zip_code}
+                           onChange={(e) => setBillAddress({...billAddress, zip_code: e.target.value})}
                         />
                       </div>
                       <div>
@@ -199,7 +238,7 @@ const Payment = () => {
                   <div className="space-y-2">
                     <p className="font-medium">{billAddress.street}</p>
                     <p className="text-muted-foreground">
-                      {billAddress.city}, {billAddress.state} {billAddress.zipCode}
+                      {billAddress.city}, {billAddress.state} {billAddress.zip_code}
                     </p>
                     <p className="text-muted-foreground">{billAddress.country}</p>
                   </div>
@@ -270,8 +309,8 @@ const Payment = () => {
                         <Label htmlFor="shipZip">ZIP Code</Label>
                         <Input
                           id="shipZip"
-                          value={shipmentAddress.zipCode}
-                          onChange={(e) => setShipmentAddress({...shipmentAddress, zipCode: e.target.value})}
+                           value={shipmentAddress.zip_code}
+                           onChange={(e) => setShipmentAddress({...shipmentAddress, zip_code: e.target.value})}
                         />
                       </div>
                       <div>
@@ -288,7 +327,7 @@ const Payment = () => {
                   <div className="space-y-2">
                     <p className="font-medium">{shipmentAddress.street}</p>
                     <p className="text-muted-foreground">
-                      {shipmentAddress.city}, {shipmentAddress.state} {shipmentAddress.zipCode}
+                      {shipmentAddress.city}, {shipmentAddress.state} {shipmentAddress.zip_code}
                     </p>
                     <p className="text-muted-foreground">{shipmentAddress.country}</p>
                   </div>
@@ -316,12 +355,12 @@ const Payment = () => {
                           {method.brand} ending in {method.last4}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Expires {method.expiryMonth}/{method.expiryYear}
+                          Expires {method.expiry_month}/{method.expiry_year}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {method.isDefault && (
+                      {method.is_default && (
                         <Badge variant="secondary">Default</Badge>
                       )}
                       <Button variant="outline" size="sm">Edit</Button>
@@ -358,7 +397,7 @@ const Payment = () => {
                         {invoice.description}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(invoice.date).toLocaleDateString()}
+                        {new Date(invoice.invoice_date).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex items-center space-x-4">
