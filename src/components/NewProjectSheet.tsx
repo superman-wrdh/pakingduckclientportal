@@ -22,7 +22,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
   const [formData, setFormData] = useState({
     name: "",
     type: "",
-    client: "",
+    client: "ING BANK",
     description: "",
     dueDate: undefined as Date | undefined,
   });
@@ -63,7 +63,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
         setFormData({
           name: "",
           type: "",
-          client: "",
+          client: "ING BANK",
           description: "",
           dueDate: undefined,
         });
