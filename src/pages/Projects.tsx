@@ -401,15 +401,15 @@ const Projects = () => {
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                   <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="sm"
                                     onClick={() => {
                                       setSelectedProject(project);
                                       setIsSheetOpen(true);
                                     }}
+                                    className="h-8 w-8 p-0 hover:bg-muted"
                                   >
                                     <Eye className="h-4 w-4" />
-                                    View
                                   </Button>
                                 </div>
                               </TableCell>
