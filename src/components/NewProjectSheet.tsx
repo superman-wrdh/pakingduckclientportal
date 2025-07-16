@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +30,16 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
   });
   const { toast } = useToast();
   const { createProject } = useProjects();
+
+  // Update form data when user metadata changes
+  useEffect(() => {
+    if (user?.user_metadata?.company) {
+      setFormData(prev => ({
+        ...prev,
+        client: user.user_metadata.company
+      }));
+    }
+  }, [user?.user_metadata?.company]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

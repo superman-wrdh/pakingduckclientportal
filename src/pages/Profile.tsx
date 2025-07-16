@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { 
   User, 
   Building2, 
@@ -23,63 +26,97 @@ import {
 } from "lucide-react";
 
 const Profile = () => {
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState({
-    name: "Creative Packaging Solutions",
-    industry: "Design & Manufacturing",
-    size: "50-100 employees",
-    founded: "2015",
-    website: "www.creativepkg.com",
-    address: "123 Design Street, San Francisco, CA 94105",
-    contactPerson: "John Smith",
-    phone: "+1 (555) 987-6543",
-    email: "info@creativepkg.com",
-    description: "A leading packaging design company specializing in sustainable and innovative packaging solutions for food, beverage, and consumer goods industries."
+    name: "",
+    industry: "",
+    size: "",
+    founded: "",
+    website: "",
+    address: "",
+    contactPerson: "",
+    phone: "",
+    email: "",
+    description: ""
   });
 
-  const userProfile = {
-    name: "Sarah Chen",
-    title: "Senior Packaging Designer",
-    email: "sarah.chen@company.com",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    joinDate: "March 2023",
-    avatar: "/api/placeholder/100/100",
-    bio: "Passionate packaging designer with 8+ years of experience creating sustainable and innovative packaging solutions for leading brands."
-  };
+  // Load user metadata when component mounts
+  useEffect(() => {
+    if (user?.user_metadata) {
+      setEditedProfile({
+        name: user.user_metadata.company || "",
+        industry: user.user_metadata.industry || "Design & Manufacturing",
+        size: user.user_metadata.size || "50-100 employees", 
+        founded: user.user_metadata.founded || "2015",
+        website: user.user_metadata.website || "",
+        address: user.user_metadata.address || "",
+        contactPerson: user.user_metadata.contactPerson || "",
+        phone: user.user_metadata.phone || "",
+        email: user.user_metadata.email || user.email || "",
+        description: user.user_metadata.description || ""
+      });
+    }
+  }, [user]);
 
-  const companyProfile = {
-    name: "Creative Packaging Solutions",
-    industry: "Design & Manufacturing",
-    size: "50-100 employees",
-    founded: "2015",
-    website: "www.creativepkg.com",
-    address: "123 Design Street, San Francisco, CA 94105",
-    contactPerson: "John Smith",
-    phone: "+1 (555) 987-6543",
-    email: "info@creativepkg.com",
-    description: "A leading packaging design company specializing in sustainable and innovative packaging solutions for food, beverage, and consumer goods industries."
-  };
 
-  const handleSave = () => {
-    // In a real app, this would save to a backend
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      // Update user metadata in Supabase
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          company: editedProfile.name,
+          industry: editedProfile.industry,
+          size: editedProfile.size,
+          founded: editedProfile.founded,
+          website: editedProfile.website,
+          address: editedProfile.address,
+          contactPerson: editedProfile.contactPerson,
+          phone: editedProfile.phone,
+          description: editedProfile.description
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update profile. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Profile Updated",
+        description: "Your company profile has been updated successfully.",
+      });
+      
+      setIsEditing(false);
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancel = () => {
-    // Reset to original values
-    setEditedProfile({
-      name: companyProfile.name,
-      industry: companyProfile.industry,
-      size: companyProfile.size,
-      founded: companyProfile.founded,
-      website: companyProfile.website,
-      address: companyProfile.address,
-      contactPerson: companyProfile.contactPerson,
-      phone: companyProfile.phone,
-      email: companyProfile.email,
-      description: companyProfile.description,
-    });
+    // Reset to original values from user metadata
+    if (user?.user_metadata) {
+      setEditedProfile({
+        name: user.user_metadata.company || "",
+        industry: user.user_metadata.industry || "Design & Manufacturing",
+        size: user.user_metadata.size || "50-100 employees",
+        founded: user.user_metadata.founded || "2015", 
+        website: user.user_metadata.website || "",
+        address: user.user_metadata.address || "",
+        contactPerson: user.user_metadata.contactPerson || "",
+        phone: user.user_metadata.phone || "",
+        email: user.user_metadata.email || user.email || "",
+        description: user.user_metadata.description || ""
+      });
+    }
     setIsEditing(false);
   };
 
