@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
+import { NotificationsProvider } from "@/components/NotificationsProvider";
 import { CRMLayout } from "@/components/layouts/CRMLayout";
 import Dashboard from "./pages/Dashboard";
 import Community from "./pages/Community";
@@ -26,7 +27,8 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="system" storageKey="crm-theme">
-      <TooltipProvider>
+      <NotificationsProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -113,7 +115,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         </BrowserRouter>
-      </TooltipProvider>
+        </TooltipProvider>
+      </NotificationsProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

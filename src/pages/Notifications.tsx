@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNotifications } from "@/hooks/useNotifications";
 import { 
   Bell, 
   Package, 
@@ -13,48 +14,25 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Truck
+  Truck,
+  Plus
 } from "lucide-react";
 
 const Notifications = () => {
-  const projectUpdates = [
+  const { notifications, markAllAsRead, unreadCount } = useNotifications();
+
+  // Static data for demo purposes - you can remove this when you have real data
+  const demoProjectUpdates = notifications.length === 0 ? [
     {
-      id: 1,
-      title: "Coffee Package Design Approved",
-      description: "Manufacturing phase has begun",
-      timestamp: "2 hours ago",
-      type: "approved",
-      icon: CheckCircle,
-      project: "Artisan Coffee Packaging"
-    },
-    {
-      id: 2,
-      title: "Tea Box Shipping Update",
-      description: "Package shipped to client - tracking #TB2024001",
-      timestamp: "4 hours ago",
-      type: "shipping",
-      icon: Truck,
-      project: "Premium Tea Collection"
-    },
-    {
-      id: 3,
-      title: "Design Review Required",
-      description: "New feedback from client on beverage label design",
-      timestamp: "1 day ago",
-      type: "review",
-      icon: AlertCircle,
-      project: "Energy Drink Labels"
-    },
-    {
-      id: 4,
-      title: "Manufacturing Complete",
-      description: "Wine bottle packaging batch ready for quality check",
-      timestamp: "2 days ago",
-      type: "complete",
-      icon: Package,
-      project: "Luxury Wine Bottles"
+      id: "demo-1",
+      title: "Welcome to Project Notifications",
+      description: "Create your first project to see notifications here",
+      timestamp: "Just now",
+      type: "created" as const,
+      project: "Getting Started",
+      read: false
     }
-  ];
+  ] : [];
 
   const socialEngagement = [
     {
@@ -101,6 +79,7 @@ const Notifications = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
+      case "created": return Plus;
       case "approved": return CheckCircle;
       case "shipping": return Truck;
       case "review": return AlertCircle;
@@ -111,6 +90,7 @@ const Notifications = () => {
 
   const getTypeBadge = (type: string) => {
     switch (type) {
+      case "created": return <Badge className="bg-blue-100 text-blue-800">Created</Badge>;
       case "approved": return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
       case "shipping": return <Badge className="bg-blue-100 text-blue-800">Shipping</Badge>;
       case "review": return <Badge className="bg-orange-100 text-orange-800">Review</Badge>;
@@ -128,7 +108,7 @@ const Notifications = () => {
             Stay updated on project progress and community engagement
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={markAllAsRead}>
           <Bell className="h-4 w-4 mr-2" />
           Mark All Read
         </Button>
@@ -147,10 +127,14 @@ const Notifications = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {projectUpdates.map((update) => {
+              {[...notifications, ...demoProjectUpdates].map((update) => {
                 const IconComponent = getTypeIcon(update.type);
+                const timeAgo = update.timestamp.includes("T") 
+                  ? new Date(update.timestamp).toLocaleString()
+                  : update.timestamp;
+                
                 return (
-                  <div key={update.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                  <div key={update.id} className={`flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors ${!update.read ? 'bg-blue-50 border-blue-200' : ''}`}>
                     <div className="p-2 bg-primary/10 rounded-lg">
                       <IconComponent className="h-4 w-4 text-primary" />
                     </div>
@@ -162,7 +146,7 @@ const Notifications = () => {
                       <p className="text-sm text-muted-foreground">{update.description}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        {update.timestamp}
+                        {timeAgo}
                         <Separator orientation="vertical" className="h-3" />
                         <span className="font-medium">{update.project}</span>
                       </div>
@@ -217,7 +201,7 @@ const Notifications = () => {
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Unread notifications</span>
-                <Badge variant="secondary">12</Badge>
+                <Badge variant="secondary">{unreadCount}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Active projects</span>

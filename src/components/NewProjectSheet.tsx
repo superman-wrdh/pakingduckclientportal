@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface NewProjectSheetProps {
   children?: React.ReactNode;
@@ -30,6 +31,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
   });
   const { toast } = useToast();
   const { createProject } = useProjects();
+  const { addNotification } = useNotifications();
 
   // Update form data when user metadata changes
   useEffect(() => {
@@ -66,6 +68,14 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
       const newProject = await createProject(projectData);
       
       if (newProject) {
+        // Add notification for project creation
+        addNotification({
+          title: "New Project Created",
+          description: `${formData.name} has been successfully created and is now in project initiation phase.`,
+          type: "created",
+          project: formData.name
+        });
+
         toast({
           title: "Project Created",
           description: `${formData.name} has been created successfully.`,
