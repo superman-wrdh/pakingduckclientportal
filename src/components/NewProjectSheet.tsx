@@ -11,6 +11,7 @@ import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useProjects } from "@/hooks/useProjects";
 
 interface NewProjectSheetProps {
   children?: React.ReactNode;
@@ -21,16 +22,18 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
   const [formData, setFormData] = useState({
     name: "",
     type: "",
+    client: "",
     description: "",
     dueDate: undefined as Date | undefined,
   });
   const { toast } = useToast();
+  const { createProject } = useProjects();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
-    if (!formData.name || !formData.type) {
+    if (!formData.name || !formData.type || !formData.client) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -39,22 +42,40 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
       return;
     }
 
-    // Here you would typically send the data to your backend
-    console.log("New project data:", formData);
-    
-    toast({
-      title: "Project Created",
-      description: `${formData.name} has been created successfully.`,
-    });
+    try {
+      const projectData = {
+        name: formData.name,
+        type: formData.type,
+        client: formData.client,
+        status: "project initiation" as const,
+        due_date: formData.dueDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      };
 
-    // Reset form and close sheet
-    setFormData({
-      name: "",
-      type: "",
-      description: "",
-      dueDate: undefined,
-    });
-    setOpen(false);
+      const newProject = await createProject(projectData);
+      
+      if (newProject) {
+        toast({
+          title: "Project Created",
+          description: `${formData.name} has been created successfully.`,
+        });
+
+        // Reset form and close sheet
+        setFormData({
+          name: "",
+          type: "",
+          client: "",
+          description: "",
+          dueDate: undefined,
+        });
+        setOpen(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string | Date | undefined) => {
@@ -87,6 +108,17 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="e.g., Organic Tea Collection"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="client">Client *</Label>
+            <Input
+              id="client"
+              value={formData.client}
+              onChange={(e) => handleInputChange("client", e.target.value)}
+              placeholder="e.g., Acme Corporation"
               required
             />
           </div>
