@@ -37,46 +37,44 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useProjects } from "@/hooks/useProjects";
 
 const exploreItems = [
   { title: "Community", url: "/community", icon: Users },
   { title: "Guide", url: "/how-to", icon: HelpCircle },
 ];
 
-// Mock project data for counts - in real app this would come from a data store
-const getProjectCounts = () => {
-  const projects = [
-    { status: "In Progress" },
-    { status: "Review" },
-    { status: "Completed" },
-    { status: "Planning" },
-  ];
-  
-  const inProgress = projects.filter(p => p.status === "In Progress" || p.status === "Review" || p.status === "Planning").length;
-  const completed = projects.filter(p => p.status === "Completed").length;
+// Get real project counts from the database
+const getProjectCounts = (projects: any[]) => {
+  const inProgress = projects.filter(p => p.status !== "completed").length;
+  const completed = projects.filter(p => p.status === "completed").length;
   const total = projects.length;
   
   return { total, inProgress, completed };
 };
 
-const workspaceItems = [
-  { title: "Notifications", url: "/notifications", icon: Bell },
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { 
-    title: "Projects", 
-    url: "/projects", 
-    icon: FolderOpen,
-    subItems: [
-      { title: "Overview", url: "/projects", count: getProjectCounts().total },
-      { title: "In Progress", url: "/projects/in-progress", count: getProjectCounts().inProgress },
-      { title: "Completed", url: "/projects/completed", count: getProjectCounts().completed },
-    ]
-  },
-  { title: "Chat", url: "/chat", icon: MessageCircle },
-  { title: "Payment", url: "/payment", icon: CreditCard },
+// Create workspace items with real project counts
+const createWorkspaceItems = (projects: any[]) => {
+  const counts = getProjectCounts(projects);
   
-  { title: "Invite", url: "/invite", icon: UserPlus },
-];
+  return [
+    { title: "Notifications", url: "/notifications", icon: Bell },
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+    { 
+      title: "Projects", 
+      url: "/projects", 
+      icon: FolderOpen,
+      subItems: [
+        { title: "Overview", url: "/projects", count: counts.total },
+        { title: "In Progress", url: "/projects/in-progress", count: counts.inProgress },
+        { title: "Completed", url: "/projects/completed", count: counts.completed },
+      ]
+    },
+    { title: "Chat", url: "/chat", icon: MessageCircle },
+    { title: "Payment", url: "/payment", icon: CreditCard },
+    { title: "Invite", url: "/invite", icon: UserPlus },
+  ];
+};
 
 const aiAssistantItems = [
   { title: "Duck AI", url: "/duck-ai", icon: MessageCircle },
@@ -187,6 +185,10 @@ function SidebarSection({ title, items }: SidebarSectionProps) {
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { projects } = useProjects();
+  
+  // Create workspace items with real project counts
+  const workspaceItems = createWorkspaceItems(projects);
 
   return (
     <Sidebar collapsible="icon" className="w-56">
