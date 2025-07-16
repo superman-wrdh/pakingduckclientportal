@@ -12,8 +12,10 @@ import { NewProjectSheet } from "@/components/NewProjectSheet";
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useProjects } from "@/hooks/useProjects";
+import { useAuth } from "@/hooks/useAuth";
 
 const Projects = () => {
+  const { user } = useAuth();
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -66,7 +68,7 @@ const Projects = () => {
     if (searchTerm) {
       filtered = filtered.filter(project => 
         project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.client.toLowerCase().includes(searchTerm.toLowerCase())
+        (user?.user_metadata?.company || project.client).toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -286,7 +288,7 @@ const Projects = () => {
                             {getPaginatedProjects().projects.map((project) => (
                            <TableRow key={project.id}>
                              <TableCell className="font-medium">{project.name}</TableCell>
-                             <TableCell>{project.client}</TableCell>
+                             <TableCell>{user?.user_metadata?.company || project.client}</TableCell>
                              <TableCell>
                                <div className="flex items-center">
                                  <Package className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -419,7 +421,7 @@ const Projects = () => {
                               {project.status}
                             </Badge>
                           </div>
-                          <CardDescription>{project.client}</CardDescription>
+                          <CardDescription>{user?.user_metadata?.company || project.client}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                           <div className="flex items-center text-sm text-muted-foreground">
@@ -602,7 +604,7 @@ const Projects = () => {
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-2">Description</h4>
                         <p className="text-muted-foreground leading-relaxed">
-                          This is a comprehensive {selectedProject.type.toLowerCase()} project for {selectedProject.client}. 
+                          This is a comprehensive {selectedProject.type.toLowerCase()} project for {user?.user_metadata?.company || selectedProject.client}. 
                           The project involves creating innovative packaging solutions that align with the client's brand identity 
                           and sustainability goals. Currently in {selectedProject.status.toLowerCase()} phase, with an expected 
                           completion date of {new Date(selectedProject.dueDate).toLocaleDateString()}.
@@ -866,7 +868,7 @@ const Projects = () => {
                         <div>
                           <h4 className="font-medium mb-3">Shipping Address</h4>
                           <div className="space-y-1 text-sm text-muted-foreground">
-                            <p>{selectedProject.client}</p>
+                            <p>{user?.user_metadata?.company || selectedProject.client}</p>
                             <p>123 Business Avenue</p>
                             <p>Suite 100</p>
                             <p>New York, NY 10001</p>
