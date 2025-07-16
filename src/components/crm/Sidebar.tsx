@@ -14,6 +14,8 @@ import {
   ChevronRight,
   UserPlus
 } from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
+import { Badge } from "@/components/ui/badge";
 const logo = "/lovable-uploads/a09bbeec-4835-42c5-ac6b-dee617792106.png";
 import {
   Sidebar,
@@ -104,6 +106,7 @@ function SidebarSection({ title, items }: SidebarSectionProps) {
   const currentPath = location.pathname;
   const { state } = useSidebar();
   const [openItems, setOpenItems] = useState<string[]>([]);
+  const { unreadCount } = useNotifications();
 
   const toggleItem = (itemTitle: string) => {
     setOpenItems(prev => 
@@ -169,9 +172,19 @@ function SidebarSection({ title, items }: SidebarSectionProps) {
             return (
               <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton asChild isActive={isActive}>
-                  <NavLink to={item.url}>
-                    <Icon className="h-4 w-4" />
-                    {state !== "collapsed" && <span>{item.title}</span>}
+                  <NavLink to={item.url} className="flex items-center justify-between w-full">
+                    <div className="flex items-center">
+                      <Icon className="h-4 w-4" />
+                      {state !== "collapsed" && <span className="ml-2">{item.title}</span>}
+                    </div>
+                    {item.title === "Notifications" && unreadCount > 0 && state !== "collapsed" && (
+                      <Badge 
+                        variant="destructive" 
+                        className="h-5 w-5 flex items-center justify-center text-xs p-0 min-w-5"
+                      >
+                        {unreadCount}
+                      </Badge>
+                    )}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

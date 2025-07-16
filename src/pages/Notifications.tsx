@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 const Notifications = () => {
-  const { notifications, markAllAsRead, unreadCount } = useNotifications();
+  const { notifications, markAllAsRead, markAsRead, unreadCount } = useNotifications();
 
   // Static data for demo purposes - you can remove this when you have real data
   const demoProjectUpdates = notifications.length === 0 ? [
@@ -84,6 +84,7 @@ const Notifications = () => {
       case "shipping": return Truck;
       case "review": return AlertCircle;
       case "complete": return Package;
+      case "status_changed": return AlertCircle;
       default: return Bell;
     }
   };
@@ -95,6 +96,7 @@ const Notifications = () => {
       case "shipping": return <Badge className="bg-blue-100 text-blue-800">Shipping</Badge>;
       case "review": return <Badge className="bg-orange-100 text-orange-800">Review</Badge>;
       case "complete": return <Badge className="bg-purple-100 text-purple-800">Complete</Badge>;
+      case "status_changed": return <Badge className="bg-yellow-100 text-yellow-800">Status Changed</Badge>;
       default: return <Badge variant="secondary">Update</Badge>;
     }
   };
@@ -133,26 +135,34 @@ const Notifications = () => {
                   ? new Date(update.timestamp).toLocaleString()
                   : update.timestamp;
                 
-                return (
-                  <div key={update.id} className={`flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors ${!update.read ? 'bg-blue-50 border-blue-200' : ''}`}>
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <IconComponent className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{update.title}</h4>
-                        {getTypeBadge(update.type)}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{update.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {timeAgo}
-                        <Separator orientation="vertical" className="h-3" />
-                        <span className="font-medium">{update.project}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
+                 return (
+                   <div 
+                     key={update.id} 
+                     className={`flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors cursor-pointer ${!update.read ? 'bg-blue-50 border-blue-200' : ''}`}
+                     onClick={() => {
+                       if (!update.read) {
+                         markAsRead(update.id);
+                       }
+                     }}
+                   >
+                     <div className="p-2 bg-primary/10 rounded-lg">
+                       <IconComponent className="h-4 w-4 text-primary" />
+                     </div>
+                     <div className="flex-1 space-y-1">
+                       <div className="flex items-center justify-between">
+                         <h4 className="font-medium">{update.title}</h4>
+                         {getTypeBadge(update.type)}
+                       </div>
+                       <p className="text-sm text-muted-foreground">{update.description}</p>
+                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                         <Clock className="h-3 w-3" />
+                         {timeAgo}
+                         <Separator orientation="vertical" className="h-3" />
+                         <span className="font-medium">{update.project}</span>
+                       </div>
+                     </div>
+                   </div>
+                 );
               })}
             </CardContent>
           </Card>
