@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      annotations: {
+        Row: {
+          content: string
+          created_at: string
+          file_id: string
+          id: string
+          updated_at: string
+          user_id: string
+          version_id: string
+          x_position: number
+          y_position: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          file_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          version_id: string
+          x_position: number
+          y_position: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          file_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          version_id?: string
+          x_position?: number
+          y_position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annotations_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "version_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "annotations_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "design_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_addresses: {
         Row: {
           city: string
@@ -55,6 +106,91 @@ export type Database = {
           zip_code?: string
         }
         Relationships: []
+      }
+      design_versions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_latest: boolean
+          name: string
+          project_id: string
+          updated_at: string
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_latest?: boolean
+          name: string
+          project_id: string
+          updated_at?: string
+          user_id: string
+          version_number: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_latest?: boolean
+          name?: string
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          rating: number | null
+          status: string
+          updated_at: string
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "design_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitations: {
         Row: {
@@ -280,6 +416,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      version_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "version_files_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "design_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
