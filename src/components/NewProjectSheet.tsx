@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -25,7 +25,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
     name: "",
     type: "",
     client: user?.user_metadata?.company || "ING BANK",
-    description: "",
+    descriptions: [""],
     dueDate: undefined as Date | undefined,
   });
   const { toast } = useToast();
@@ -61,7 +61,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
         client: formData.client,
         status: "project initiation" as const,
         due_date: formData.dueDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
-        description: formData.description,
+        description: formData.descriptions.filter(desc => desc.trim() !== "").join("\n\n"),
       };
 
       const newProject = await createProject(projectData);
@@ -79,7 +79,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
           name: "",
           type: "",
           client: user?.user_metadata?.company || "ING BANK",
-          description: "",
+          descriptions: [""],
           dueDate: undefined,
         });
         setOpen(false);
@@ -95,6 +95,27 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
 
   const handleInputChange = (field: string, value: string | Date | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addDescription = () => {
+    setFormData(prev => ({
+      ...prev,
+      descriptions: [...prev.descriptions, ""]
+    }));
+  };
+
+  const removeDescription = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      descriptions: prev.descriptions.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateDescription = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      descriptions: prev.descriptions.map((desc, i) => i === index ? value : desc)
+    }));
   };
 
   return (
@@ -156,14 +177,42 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Brief description including product information, dimensions, materials, target audience, and specific design requirements..."
-              rows={4}
-            />
+            <div className="flex items-center justify-between">
+              <Label>Design Descriptions</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addDescription}
+                className="h-8 w-8 p-0"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {formData.descriptions.map((description, index) => (
+                <div key={index} className="flex gap-2">
+                  <Textarea
+                    value={description}
+                    onChange={(e) => updateDescription(index, e.target.value)}
+                    placeholder="Brief description including product information, dimensions, materials, target audience, and specific design requirements..."
+                    rows={3}
+                    className="flex-1"
+                  />
+                  {formData.descriptions.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeDescription(index)}
+                      className="h-8 w-8 p-0 mt-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">
