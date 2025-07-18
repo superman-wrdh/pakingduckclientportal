@@ -2,21 +2,27 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, X, Upload, FileText, Trash2 } from "lucide-react";
+import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { DesignSection } from "./projects/DesignSection";
 
 interface NewProjectSheetProps {
   children?: React.ReactNode;
+}
+
+interface Design {
+  name: string;
+  description: string;
+  attachments: File[];
 }
 
 export function NewProjectSheet({ children }: NewProjectSheetProps) {
@@ -26,10 +32,11 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
     name: "",
     type: "",
     client: user?.user_metadata?.company || "ING BANK",
-    descriptions: [""],
     dueDate: undefined as Date | undefined,
   });
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [designs, setDesigns] = useState<Design[]>([
+    { name: "", description: "", attachments: [] }
+  ]);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const { createProject } = useProjects();
@@ -57,6 +64,17 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
       return;
     }
 
+    // Validate that at least one design has a name
+    const validDesigns = designs.filter(design => design.name.trim() !== "");
+    if (validDesigns.length === 0) {
+      toast({
+        title: "Missing Design Information",
+        description: "Please add at least one design with a name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setUploading(true);
       
@@ -66,53 +84,76 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
         client: formData.client,
         status: "project initiation" as const,
         due_date: formData.dueDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
-        description: formData.descriptions.filter(desc => desc.trim() !== "").join("\n\n"),
+        description: `Project contains ${validDesigns.length} design(s)`,
       };
 
       const newProject = await createProject(projectData);
       
-      if (newProject && attachments.length > 0) {
-        // Upload attachments to Supabase storage
-        for (const file of attachments) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${newProject.id}/${Date.now()}-${file.name}`;
+      if (newProject) {
+        // Create design versions for each design
+        for (let i = 0; i < validDesigns.length; i++) {
+          const design = validDesigns[i];
           
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('project-files')
-            .upload(fileName, file);
+          // Create design version
+          const { data: designVersion, error: designError } = await supabase
+            .from('design_versions')
+            .insert({
+              project_id: newProject.id,
+              name: design.name,
+              description: design.description || null,
+              version_number: i + 1,
+              is_latest: true,
+              user_id: user?.id
+            })
+            .select()
+            .single();
 
-          if (uploadError) {
-            console.error('Upload error:', uploadError);
+          if (designError) {
+            console.error('Error creating design version:', designError);
             continue;
           }
 
-          // Get the public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('project-files')
-            .getPublicUrl(fileName);
+          // Upload attachments for this design
+          if (design.attachments.length > 0) {
+            for (const file of design.attachments) {
+              const fileName = `${newProject.id}/designs/${designVersion.id}/${Date.now()}-${file.name}`;
+              
+              const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('project-files')
+                .upload(fileName, file);
 
-          // Save attachment metadata to database
-          const { error: dbError } = await supabase
-            .from('project_attachments')
-            .insert({
-              project_id: newProject.id,
-              file_name: file.name,
-              file_size: file.size,
-              file_type: file.type,
-              file_url: publicUrl,
-              user_id: user?.id
-            });
+              if (uploadError) {
+                console.error('Upload error:', uploadError);
+                continue;
+              }
 
-          if (dbError) {
-            console.error('Database error:', dbError);
+              // Get the public URL
+              const { data: { publicUrl } } = supabase.storage
+                .from('project-files')
+                .getPublicUrl(fileName);
+
+              // Save file metadata to version_files table
+              const { error: dbError } = await supabase
+                .from('version_files')
+                .insert({
+                  version_id: designVersion.id,
+                  file_name: file.name,
+                  file_size: file.size,
+                  file_type: file.type,
+                  file_url: publicUrl,
+                  user_id: user?.id
+                });
+
+              if (dbError) {
+                console.error('Database error:', dbError);
+              }
+            }
           }
         }
-      }
-      
-      if (newProject) {
+        
         toast({
           title: "Project Created",
-          description: `${formData.name} has been created successfully${attachments.length > 0 ? ` with ${attachments.length} attachment(s)` : ''}.`,
+          description: `${formData.name} has been created successfully with ${validDesigns.length} design(s).`,
         });
 
         // Reset form and close sheet
@@ -120,10 +161,9 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
           name: "",
           type: "",
           client: user?.user_metadata?.company || "ING BANK",
-          descriptions: [""],
           dueDate: undefined,
         });
-        setAttachments([]);
+        setDesigns([{ name: "", description: "", attachments: [] }]);
         setOpen(false);
       }
     } catch (error) {
@@ -142,42 +182,16 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const addDescription = () => {
-    setFormData(prev => ({
-      ...prev,
-      descriptions: [...prev.descriptions, ""]
-    }));
+  const addDesign = () => {
+    setDesigns(prev => [...prev, { name: "", description: "", attachments: [] }]);
   };
 
-  const removeDescription = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      descriptions: prev.descriptions.filter((_, i) => i !== index)
-    }));
+  const removeDesign = (index: number) => {
+    setDesigns(prev => prev.filter((_, i) => i !== index));
   };
 
-  const updateDescription = (index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      descriptions: prev.descriptions.map((desc, i) => i === index ? value : desc)
-    }));
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setAttachments(prev => [...prev, ...files]);
-  };
-
-  const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const updateDesign = (index: number, design: Design) => {
+    setDesigns(prev => prev.map((d, i) => i === index ? design : d));
   };
 
   return (
@@ -194,7 +208,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
         <SheetHeader>
           <SheetTitle>Create New Project</SheetTitle>
           <SheetDescription>
-            Add a new packaging design project. Fill in the details below.
+            Add a new packaging design project with multiple designs.
           </SheetDescription>
         </SheetHeader>
         
@@ -211,13 +225,12 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client">Client *</Label>
+            <Label htmlFor="client">Client</Label>
             <Input
               id="client"
               value={formData.client}
-              onChange={(e) => handleInputChange("client", e.target.value)}
-              placeholder="e.g., Acme Corporation"
-              required
+              disabled
+              className="bg-muted"
             />
           </div>
 
@@ -238,93 +251,31 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Design Descriptions</Label>
+              <Label className="text-base font-semibold">Designs</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={addDescription}
-                className="h-8 w-8 p-0"
+                onClick={addDesign}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-2" />
+                Add Design
               </Button>
             </div>
-            <div className="space-y-3">
-              {formData.descriptions.map((description, index) => (
-                <div key={index} className="flex gap-2">
-                  <Textarea
-                    value={description}
-                    onChange={(e) => updateDescription(index, e.target.value)}
-                    placeholder="Brief description including product information, dimensions, materials, target audience, and specific design requirements..."
-                    rows={3}
-                    className="flex-1"
-                  />
-                  {formData.descriptions.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeDescription(index)}
-                      className="h-8 w-8 p-0 mt-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+            
+            <div className="space-y-4">
+              {designs.map((design, index) => (
+                <DesignSection
+                  key={index}
+                  design={design}
+                  onUpdate={(updatedDesign) => updateDesign(index, updatedDesign)}
+                  onRemove={() => removeDesign(index)}
+                  canRemove={designs.length > 1}
+                />
               ))}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Attachments</Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-4">
-              <div className="text-center">
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <div className="space-y-1">
-                  <Label htmlFor="file-upload" className="cursor-pointer text-sm font-medium text-primary hover:text-primary/80">
-                    Click to upload files
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    or drag and drop files here
-                  </p>
-                </div>
-                <Input
-                  id="file-upload"
-                  type="file"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.zip,.rar"
-                />
-              </div>
-            </div>
-            
-            {attachments.length > 0 && (
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                    <div className="flex items-center space-x-2 flex-1">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeAttachment(index)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="space-y-2">
