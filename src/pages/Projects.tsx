@@ -356,14 +356,17 @@ const Projects = () => {
                           <TableBody>
                             {getPaginatedProjects().projects.map((project) => (
                             <TableRow key={project.id}>
-                              <TableCell className="font-medium">
-                                <Link 
-                                  to={`/projects/${project.id}`}
-                                  className="text-primary hover:text-primary/80 hover:underline transition-colors"
-                                >
-                                  {project.name}
-                                </Link>
-                              </TableCell>
+                               <TableCell className="font-medium">
+                                 <button 
+                                   onClick={() => {
+                                     setSelectedProject(project);
+                                     setIsSheetOpen(true);
+                                   }}
+                                   className="text-primary hover:text-primary/80 hover:underline transition-colors cursor-pointer bg-transparent border-none p-0 font-inherit text-left"
+                                 >
+                                   {project.name}
+                                 </button>
+                               </TableCell>
                              <TableCell>{user?.user_metadata?.company || project.client}</TableCell>
                              <TableCell>
                                <div className="flex items-center">
