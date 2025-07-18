@@ -90,7 +90,7 @@ export function useDesigns(projectId?: string) {
       // Get the next version number
       const { data: existingVersions } = await supabase
         .from('design_versions')
-        .select('version_number, name')
+        .select('version_number')
         .eq('project_id', designData.project_id)
         .eq('user_id', user.id)
         .order('version_number', { ascending: false })
@@ -99,9 +99,6 @@ export function useDesigns(projectId?: string) {
       const nextVersionNumber = existingVersions?.[0]?.version_number 
         ? existingVersions[0].version_number + 1 
         : 1;
-
-      // Auto-generate design name if not provided
-      const designName = designData.name || `Design ${nextVersionNumber}`;
 
       // Mark all existing versions as not latest
       await supabase
@@ -115,7 +112,7 @@ export function useDesigns(projectId?: string) {
         .from('design_versions')
         .insert({
           project_id: designData.project_id,
-          name: designName,
+          name: designData.name,
           description: designData.description || null,
           version_number: nextVersionNumber,
           is_latest: true,
