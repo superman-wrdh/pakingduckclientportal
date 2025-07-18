@@ -803,7 +803,7 @@ const Projects = () => {
                                     setAnnotations([]);
                                   }}
                                 >
-                                  Approve Design
+                                  Approve
                                 </Button>
                               </div>
                             </CardContent>
