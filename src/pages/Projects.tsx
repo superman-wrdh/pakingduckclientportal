@@ -15,6 +15,7 @@ import { NewProjectSheet } from "@/components/NewProjectSheet";
 import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useProjects } from "@/hooks/useProjects";
+import { useDesigns } from "@/hooks/useDesigns";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,6 +25,7 @@ const Projects = () => {
   const { toast } = useToast();
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
+  const { designs, getLatestDesign, getPastDesigns } = useDesigns(selectedProject?.id);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -661,215 +663,354 @@ const Projects = () => {
 
                     {/* Latest Version Tab */}
                     <TabsContent value="latest" className="mt-6">
-                      <div className="grid grid-cols-3 gap-6">
-                        {/* Design Canvas */}
-                        <div className="col-span-2">
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="flex items-center gap-2">
-                                <Palette className="h-5 w-5" />
-                                Latest Design v3.2
-                              </CardTitle>
-                              <CardDescription>Click on the design to add annotations and feedback</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <div 
-                                className="relative w-full h-96 bg-muted rounded-lg overflow-hidden cursor-crosshair"
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const x = ((e.clientX - rect.left) / rect.width) * 100;
-                                  const y = ((e.clientY - rect.top) / rect.height) * 100;
-                                  setNewAnnotation({x, y});
-                                }}
-                              >
-                                {/* Placeholder Design Image */}
-                                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                                  <div className="text-center text-muted-foreground">
-                                    <Palette className="h-16 w-16 mx-auto mb-4" />
-                                    <p className="text-lg font-medium">Latest Design Canvas</p>
-                                    <p className="text-sm">Click anywhere to add annotations</p>
-                                  </div>
-                                </div>
-                                
-                                {/* Existing Annotations */}
-                                {annotations.map((annotation) => (
-                                  <div
-                                    key={annotation.id}
-                                    className="absolute w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg cursor-pointer flex items-center justify-center text-white text-xs font-bold"
-                                    style={{ left: `${annotation.x}%`, top: `${annotation.y}%`, transform: 'translate(-50%, -50%)' }}
-                                    title={annotation.comment}
+                      {(() => {
+                        const latestDesign = getLatestDesign();
+                        if (!latestDesign) {
+                          return (
+                            <div className="text-center py-12">
+                              <Palette className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <h3 className="text-lg font-medium text-foreground mb-2">No designs found</h3>
+                              <p className="text-muted-foreground">This project doesn't have any designs yet.</p>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="grid grid-cols-3 gap-6">
+                            {/* Design Canvas */}
+                            <div className="col-span-2">
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle className="flex items-center gap-2">
+                                    <Palette className="h-5 w-5" />
+                                    {latestDesign.name} (v{latestDesign.version_number})
+                                  </CardTitle>
+                                  <CardDescription>
+                                    {latestDesign.description || "Click on the design to add annotations and feedback"}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <div 
+                                    className="relative w-full h-96 bg-muted rounded-lg overflow-hidden cursor-crosshair"
+                                    onClick={(e) => {
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                                      const y = ((e.clientY - rect.top) / rect.height) * 100;
+                                      setNewAnnotation({x, y});
+                                    }}
                                   >
-                                    {annotations.indexOf(annotation) + 1}
+                                    {/* Design Display Area */}
+                                    <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                                      <div className="text-center text-muted-foreground">
+                                        <Palette className="h-16 w-16 mx-auto mb-4" />
+                                        <p className="text-lg font-medium">{latestDesign.name}</p>
+                                        <p className="text-sm">Click anywhere to add annotations</p>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Existing Annotations */}
+                                    {annotations.map((annotation) => (
+                                      <div
+                                        key={annotation.id}
+                                        className="absolute w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg cursor-pointer flex items-center justify-center text-white text-xs font-bold"
+                                        style={{ left: `${annotation.x}%`, top: `${annotation.y}%`, transform: 'translate(-50%, -50%)' }}
+                                        title={annotation.comment}
+                                      >
+                                        {annotations.indexOf(annotation) + 1}
+                                      </div>
+                                    ))}
+                                    
+                                    {/* New Annotation Input */}
+                                    {newAnnotation && (
+                                      <div
+                                        className="absolute bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10"
+                                        style={{ left: `${newAnnotation.x}%`, top: `${newAnnotation.y}%`, transform: 'translate(-50%, -100%)', minWidth: '200px' }}
+                                      >
+                                        <Input
+                                          placeholder="Add your comment..."
+                                          autoFocus
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              const comment = e.currentTarget.value;
+                                              if (comment.trim()) {
+                                                setAnnotations([...annotations, {
+                                                  id: Date.now().toString(),
+                                                  x: newAnnotation.x,
+                                                  y: newAnnotation.y,
+                                                  comment: comment.trim()
+                                                }]);
+                                              }
+                                              setNewAnnotation(null);
+                                            } else if (e.key === 'Escape') {
+                                              setNewAnnotation(null);
+                                            }
+                                          }}
+                                        />
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                          Press Enter to save, Esc to cancel
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                ))}
-                                
-                                {/* New Annotation Input */}
-                                {newAnnotation && (
-                                  <div
-                                    className="absolute bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10"
-                                    style={{ left: `${newAnnotation.x}%`, top: `${newAnnotation.y}%`, transform: 'translate(-50%, -100%)', minWidth: '200px' }}
-                                  >
-                                    <Input
-                                      placeholder="Add your comment..."
-                                      autoFocus
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          const comment = e.currentTarget.value;
-                                          if (comment.trim()) {
-                                            setAnnotations([...annotations, {
-                                              id: Date.now().toString(),
-                                              x: newAnnotation.x,
-                                              y: newAnnotation.y,
-                                              comment: comment.trim()
-                                            }]);
-                                          }
-                                          setNewAnnotation(null);
-                                        } else if (e.key === 'Escape') {
-                                          setNewAnnotation(null);
-                                        }
+                                  
+                                  {/* Design Files */}
+                                  {latestDesign.files && latestDesign.files.length > 0 && (
+                                    <div className="mt-4">
+                                      <h4 className="font-medium mb-2">Attached Files</h4>
+                                      <div className="space-y-2">
+                                        {latestDesign.files.map((file) => (
+                                          <div key={file.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                            <div className="flex items-center gap-2">
+                                              <FileText className="h-4 w-4 text-muted-foreground" />
+                                              <div>
+                                                <p className="text-sm font-medium">{file.file_name}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {file.file_size ? `${(file.file_size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                                                </p>
+                                              </div>
+                                            </div>
+                                            <Button variant="outline" size="sm" asChild>
+                                              <a href={file.file_url} target="_blank" rel="noopener noreferrer">
+                                                <Download className="h-4 w-4 mr-2" />
+                                                View
+                                              </a>
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </div>
+                            
+                            {/* Feedback Panel */}
+                            <div className="space-y-4">
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle className="text-lg">Annotations</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                                    {annotations.length === 0 ? (
+                                      <p className="text-sm text-muted-foreground">No annotations yet. Click on the design to add some.</p>
+                                    ) : (
+                                      annotations.map((annotation, index) => (
+                                        <div key={annotation.id} className="flex gap-3 p-2 bg-muted/50 rounded-lg">
+                                          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                            {index + 1}
+                                          </div>
+                                          <div className="flex-1">
+                                            <p className="text-sm">{annotation.comment}</p>
+                                          </div>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                              
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle className="text-lg">Overall Feedback</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <Textarea
+                                    placeholder="Add your overall feedback about this design..."
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                    rows={4}
+                                  />
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => {
+                                        setFeedback('');
+                                        setAnnotations([]);
+                                        toast({
+                                          title: "Request sent",
+                                          description: "Your request has been sent successfully.",
+                                        });
                                       }}
-                                    />
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      Press Enter to save, Esc to cancel
-                                    </div>
+                                    >
+                                      Request
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => {
+                                        toast({
+                                          title: "Design Approved",
+                                          description: "The latest design has been approved successfully.",
+                                        });
+                                        setFeedback('');
+                                        setAnnotations([]);
+                                      }}
+                                    >
+                                      Approve
+                                    </Button>
                                   </div>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                        
-                        {/* Feedback Panel */}
-                        <div className="space-y-4">
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="text-lg">Annotations</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="space-y-3 max-h-48 overflow-y-auto">
-                                {annotations.length === 0 ? (
-                                  <p className="text-sm text-muted-foreground">No annotations yet. Click on the design to add some.</p>
-                                ) : (
-                                  annotations.map((annotation, index) => (
-                                    <div key={annotation.id} className="flex gap-3 p-2 bg-muted/50 rounded-lg">
-                                      <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                        {index + 1}
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="text-sm">{annotation.comment}</p>
-                                      </div>
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                          
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="text-lg">Overall Feedback</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              <Textarea
-                                placeholder="Add your overall feedback about this design..."
-                                value={feedback}
-                                onChange={(e) => setFeedback(e.target.value)}
-                                rows={4}
-                              />
-                              <div className="flex gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setFeedback('');
-                                    setAnnotations([]);
-                                    toast({
-                                      title: "Request sent",
-                                      description: "Your request has been sent successfully.",
-                                    });
-                                  }}
-                                >
-                                  Request
-                                </Button>
-                                <Button 
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700"
-                                  onClick={() => {
-                                    toast({
-                                      title: "Design Approved",
-                                      description: "The latest design has been approved successfully.",
-                                    });
-                                    setFeedback('');
-                                    setAnnotations([]);
-                                  }}
-                                >
-                                  Approve
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      </div>
+                                </CardContent>
+                              </Card>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </TabsContent>
 
                     {/* Version 2 Tab */}
                     <TabsContent value="v2" className="mt-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Palette className="h-5 w-5" />
-                            Design Version 2.1
-                          </CardTitle>
-                          <CardDescription>Previous version of the design (Read-only)</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="w-full h-96 bg-muted rounded-lg overflow-hidden">
-                            <div className="w-full h-full bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
-                              <div className="text-center text-muted-foreground">
-                                <Palette className="h-16 w-16 mx-auto mb-4" />
-                                <p className="text-lg font-medium">Design Version 2</p>
-                                <p className="text-sm">Archived design - view only</p>
-                              </div>
+                      {(() => {
+                        const pastDesigns = getPastDesigns();
+                        const secondLatest = pastDesigns.find(d => d.version_number === Math.max(...pastDesigns.map(d => d.version_number)));
+                        
+                        if (!secondLatest) {
+                          return (
+                            <div className="text-center py-12">
+                              <Palette className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <h3 className="text-lg font-medium text-foreground mb-2">No previous version</h3>
+                              <p className="text-muted-foreground">This is the first version of the design.</p>
                             </div>
-                          </div>
-                          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                            <h4 className="font-medium mb-2">Version Notes</h4>
-                            <p className="text-sm text-muted-foreground">
-                              This version included the client's initial feedback on color scheme and layout adjustments.
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          );
+                        }
+
+                        return (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Palette className="h-5 w-5" />
+                                {secondLatest.name} (v{secondLatest.version_number})
+                              </CardTitle>
+                              <CardDescription>
+                                {secondLatest.description || "Previous version of the design (Read-only)"}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="w-full h-96 bg-muted rounded-lg overflow-hidden">
+                                <div className="w-full h-full bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
+                                  <div className="text-center text-muted-foreground">
+                                    <Palette className="h-16 w-16 mx-auto mb-4" />
+                                    <p className="text-lg font-medium">{secondLatest.name}</p>
+                                    <p className="text-sm">Version {secondLatest.version_number} - view only</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {secondLatest.files && secondLatest.files.length > 0 && (
+                                <div className="mt-4">
+                                  <h4 className="font-medium mb-2">Attached Files</h4>
+                                  <div className="space-y-2">
+                                    {secondLatest.files.map((file) => (
+                                      <div key={file.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                        <div className="flex items-center gap-2">
+                                          <FileText className="h-4 w-4 text-muted-foreground" />
+                                          <div>
+                                            <p className="text-sm font-medium">{file.file_name}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                              {file.file_size ? `${(file.file_size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <Button variant="outline" size="sm" asChild>
+                                          <a href={file.file_url} target="_blank" rel="noopener noreferrer">
+                                            <Download className="h-4 w-4 mr-2" />
+                                            View
+                                          </a>
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                <h4 className="font-medium mb-2">Version Notes</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {secondLatest.description || `Version ${secondLatest.version_number} created on ${new Date(secondLatest.created_at).toLocaleDateString()}`}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })()}
                     </TabsContent>
 
                     {/* Version 1 Tab */}
                     <TabsContent value="v1" className="mt-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Palette className="h-5 w-5" />
-                            Design Version 1.0
-                          </CardTitle>
-                          <CardDescription>Initial design concept (Read-only)</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="w-full h-96 bg-muted rounded-lg overflow-hidden">
-                            <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                              <div className="text-center text-muted-foreground">
-                                <Palette className="h-16 w-16 mx-auto mb-4" />
-                                <p className="text-lg font-medium">Design Version 1</p>
-                                <p className="text-sm">Original concept - view only</p>
-                              </div>
+                      {(() => {
+                        const pastDesigns = getPastDesigns();
+                        const firstVersion = pastDesigns.find(d => d.version_number === 1) || designs.find(d => d.version_number === 1);
+                        
+                        if (!firstVersion) {
+                          return (
+                            <div className="text-center py-12">
+                              <Palette className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <h3 className="text-lg font-medium text-foreground mb-2">No version 1 found</h3>
+                              <p className="text-muted-foreground">The original design version is not available.</p>
                             </div>
-                          </div>
-                          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                            <h4 className="font-medium mb-2">Version Notes</h4>
-                            <p className="text-sm text-muted-foreground">
-                              The initial design concept based on the client brief and brand guidelines.
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          );
+                        }
+
+                        return (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Palette className="h-5 w-5" />
+                                {firstVersion.name} (v{firstVersion.version_number})
+                              </CardTitle>
+                              <CardDescription>
+                                {firstVersion.description || "Initial design concept (Read-only)"}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="w-full h-96 bg-muted rounded-lg overflow-hidden">
+                                <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                                  <div className="text-center text-muted-foreground">
+                                    <Palette className="h-16 w-16 mx-auto mb-4" />
+                                    <p className="text-lg font-medium">{firstVersion.name}</p>
+                                    <p className="text-sm">Original concept - view only</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {firstVersion.files && firstVersion.files.length > 0 && (
+                                <div className="mt-4">
+                                  <h4 className="font-medium mb-2">Attached Files</h4>
+                                  <div className="space-y-2">
+                                    {firstVersion.files.map((file) => (
+                                      <div key={file.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                        <div className="flex items-center gap-2">
+                                          <FileText className="h-4 w-4 text-muted-foreground" />
+                                          <div>
+                                            <p className="text-sm font-medium">{file.file_name}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                              {file.file_size ? `${(file.file_size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <Button variant="outline" size="sm" asChild>
+                                          <a href={file.file_url} target="_blank" rel="noopener noreferrer">
+                                            <Download className="h-4 w-4 mr-2" />
+                                            View
+                                          </a>
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                <h4 className="font-medium mb-2">Version Notes</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {firstVersion.description || `The initial design concept created on ${new Date(firstVersion.created_at).toLocaleDateString()}`}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })()}
                     </TabsContent>
 
                     {/* Contract Tab */}
