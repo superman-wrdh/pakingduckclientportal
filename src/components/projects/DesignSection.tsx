@@ -13,9 +13,10 @@ interface DesignSectionProps {
   onUpdate: (design: { name: string; description: string; attachments: File[] }) => void;
   onRemove: () => void;
   canRemove: boolean;
+  designNumber: number;
 }
 
-export function DesignSection({ design, onUpdate, onRemove, canRemove }: DesignSectionProps) {
+export function DesignSection({ design, onUpdate, onRemove, canRemove, designNumber }: DesignSectionProps) {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     onUpdate({
@@ -42,7 +43,7 @@ export function DesignSection({ design, onUpdate, onRemove, canRemove }: DesignS
   return (
     <div className="border rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">Design</Label>
+        <Label className="text-sm font-medium">Design {designNumber}</Label>
         {canRemove && (
           <Button
             type="button"
