@@ -384,54 +384,7 @@ const Projects = () => {
                               </TableCell>
                                <TableCell className="text-right">
                                  <div className="flex items-center justify-end gap-2">
-                                   {(project.status === "project initiation" || project.status === "design stage") && (
-                                     <Button
-                                       variant="ghost"
-                                       size="sm"
-                                       onClick={() => {
-                                         setSelectedProject(project);
-                                         setIsSheetOpen(true);
-                                       }}
-                                       className="h-8 w-8 p-0 hover:bg-muted"
-                                       title="Add Design"
-                                     >
-                                       <Palette className="h-4 w-4" />
-                                     </Button>
-                                   )}
-                                   <Button
-                                     variant="ghost"
-                                     size="sm"
-                                     onClick={() => {
-                                       setEditingProject(project);
-                                       setEditForm({ name: project.name, description: project.description || "" });
-                                       setIsEditDialogOpen(true);
-                                     }}
-                                     className="h-8 w-8 p-0 hover:bg-muted"
-                                   >
-                                     <Edit className="h-4 w-4" />
-                                   </Button>
-                                   <Button
-                                     variant="ghost"
-                                     size="sm"
-                                     onClick={() => {
-                                       setEditingProject(project);
-                                       setIsDeleteDialogOpen(true);
-                                     }}
-                                     className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                                   >
-                                     <Trash2 className="h-4 w-4" />
-                                   </Button>
-                                   <Button
-                                     variant="ghost"
-                                     size="sm"
-                                     onClick={() => {
-                                       setSelectedProject(project);
-                                       setIsSheetOpen(true);
-                                     }}
-                                     className="h-8 w-8 p-0 hover:bg-muted"
-                                   >
-                                     <Eye className="h-4 w-4" />
-                                   </Button>
+                                   {/* Actions removed per user request */}
                                  </div>
                                </TableCell>
                            </TableRow>
