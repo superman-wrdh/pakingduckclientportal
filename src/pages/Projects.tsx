@@ -784,12 +784,12 @@ const Projects = () => {
                                     setFeedback('');
                                     setAnnotations([]);
                                     toast({
-                                      title: "Feedback saved",
-                                      description: "Your feedback has been saved as draft.",
+                                      title: "Request sent",
+                                      description: "Your request has been sent successfully.",
                                     });
                                   }}
                                 >
-                                  Save Draft
+                                  Request
                                 </Button>
                                 <Button 
                                   size="sm"
