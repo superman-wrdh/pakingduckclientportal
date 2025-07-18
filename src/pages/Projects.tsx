@@ -593,9 +593,9 @@ const Projects = () => {
           )}
         </div>
 
-        {/* Project Details Sheet */}
+        {/* Project Details Sheet - Redesigned as 3/4 screen */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent className="w-[66.67vw] sm:max-w-none overflow-y-auto">
+          <SheetContent className="w-[75vw] sm:max-w-none overflow-y-auto"  side="right">
             <SheetHeader className="space-y-4 pb-6">
               <div className="flex items-center justify-between">
                 <SheetTitle className="text-2xl">{selectedProject?.name}</SheetTitle>
@@ -609,386 +609,348 @@ const Projects = () => {
             </SheetHeader>
 
             {selectedProject && (
-              <Tabs defaultValue="details" className="mt-6">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="details" className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    Details
-                  </TabsTrigger>
-                  <TabsTrigger value="design" className="flex items-center gap-2">
-                    <Palette className="h-4 w-4" />
-                    Design
-                  </TabsTrigger>
-                  <TabsTrigger value="contract" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Contract
-                  </TabsTrigger>
-                  <TabsTrigger value="shipment" className="flex items-center gap-2">
-                    <Truck className="h-4 w-4" />
-                    Shipment
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="details" className="mt-6 space-y-6">
-                  <div className="grid grid-cols-1 gap-6">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Project Status</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <Badge className={getStatusColor(selectedProject.status)}>
-                          {selectedProject.status}
-                        </Badge>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Project Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground mb-1">Project Type</h4>
-                          <div className="flex items-center">
-                            <Package className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <p>{selectedProject.type}</p>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground mb-1">Due Date</h4>
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <p>{new Date(selectedProject.due_date).toLocaleDateString()}</p>
-                          </div>
-                        </div>
+              <div className="space-y-6">
+                {/* Project Details Section */}
+                <div className="bg-card rounded-lg border p-6">
+                  <h2 className="text-xl font-semibold mb-4">Project Details</h2>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Project Type</h4>
+                      <div className="flex items-center mb-4">
+                        <Package className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <p>{selectedProject.type}</p>
                       </div>
                       
-                       <div>
-                         <h4 className="text-sm font-medium text-muted-foreground mb-2">Description</h4>
-                         <p className="text-muted-foreground leading-relaxed">
-                           {selectedProject.description || `This is a comprehensive ${selectedProject.type.toLowerCase()} project for ${user?.user_metadata?.company || selectedProject.client}. 
-                           The project involves creating innovative packaging solutions that align with the client's brand identity 
-                           and sustainability goals. Currently in ${selectedProject.status.toLowerCase()} phase, with an expected 
-                           completion date of ${new Date(selectedProject.due_date).toLocaleDateString()}.`}
-                         </p>
-                       </div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Status</h4>
+                      <Badge className={getStatusColor(selectedProject.status)} style={{ marginBottom: '1rem' }}>
+                        {selectedProject.status}
+                      </Badge>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Due Date</h4>
+                      <div className="flex items-center mb-4">
+                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <p>{new Date(selectedProject.due_date).toLocaleDateString()}</p>
+                      </div>
+                      
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Client</h4>
+                      <p>{user?.user_metadata?.company || selectedProject.client}</p>
+                    </div>
+                  </div>
+                  
+                  {selectedProject.description && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Description</h4>
+                      <p className="text-muted-foreground leading-relaxed">{selectedProject.description}</p>
+                    </div>
+                  )}
+                </div>
 
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-3">Project Timeline</h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center py-2 border-b">
-                            <span className="font-medium">Project Initiation</span>
-                            <span className="text-muted-foreground">Dec 1, 2023</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b">
-                            <span className="font-medium">Design Development</span>
-                            <span className="text-muted-foreground">Dec 10, 2023</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b">
-                            <span className="font-medium">Prototyping</span>
-                            <span className="text-muted-foreground">Dec 20, 2023</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2">
-                            <span className="font-medium">Final Delivery</span>
-                            <span className="text-muted-foreground">{new Date(selectedProject.due_date).toLocaleDateString()}</span>
-                          </div>
+                {/* Design Versions Section */}
+                <div className="bg-card rounded-lg border p-6">
+                  <h2 className="text-xl font-semibold mb-4">Design Versions</h2>
+                  
+                  <Tabs defaultValue="latest" className="w-full">
+                    <TabsList className="grid w-full grid-cols-5">
+                      <TabsTrigger value="latest">Latest Version</TabsTrigger>
+                      <TabsTrigger value="v2">Version 2</TabsTrigger>
+                      <TabsTrigger value="v1">Version 1</TabsTrigger>
+                      <TabsTrigger value="contract">Contract</TabsTrigger>
+                      <TabsTrigger value="shipment">Shipment</TabsTrigger>
+                    </TabsList>
+
+                    {/* Latest Version Tab */}
+                    <TabsContent value="latest" className="mt-6">
+                      <div className="grid grid-cols-3 gap-6">
+                        {/* Design Canvas */}
+                        <div className="col-span-2">
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Palette className="h-5 w-5" />
+                                Latest Design v3.2
+                              </CardTitle>
+                              <CardDescription>Click on the design to add annotations and feedback</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div 
+                                className="relative w-full h-96 bg-muted rounded-lg overflow-hidden cursor-crosshair"
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const x = ((e.clientX - rect.left) / rect.width) * 100;
+                                  const y = ((e.clientY - rect.top) / rect.height) * 100;
+                                  setNewAnnotation({x, y});
+                                }}
+                              >
+                                {/* Placeholder Design Image */}
+                                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                                  <div className="text-center text-muted-foreground">
+                                    <Palette className="h-16 w-16 mx-auto mb-4" />
+                                    <p className="text-lg font-medium">Latest Design Canvas</p>
+                                    <p className="text-sm">Click anywhere to add annotations</p>
+                                  </div>
+                                </div>
+                                
+                                {/* Existing Annotations */}
+                                {annotations.map((annotation) => (
+                                  <div
+                                    key={annotation.id}
+                                    className="absolute w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg cursor-pointer flex items-center justify-center text-white text-xs font-bold"
+                                    style={{ left: `${annotation.x}%`, top: `${annotation.y}%`, transform: 'translate(-50%, -50%)' }}
+                                    title={annotation.comment}
+                                  >
+                                    {annotations.indexOf(annotation) + 1}
+                                  </div>
+                                ))}
+                                
+                                {/* New Annotation Input */}
+                                {newAnnotation && (
+                                  <div
+                                    className="absolute bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10"
+                                    style={{ left: `${newAnnotation.x}%`, top: `${newAnnotation.y}%`, transform: 'translate(-50%, -100%)', minWidth: '200px' }}
+                                  >
+                                    <Input
+                                      placeholder="Add your comment..."
+                                      autoFocus
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          const comment = e.currentTarget.value;
+                                          if (comment.trim()) {
+                                            setAnnotations([...annotations, {
+                                              id: Date.now().toString(),
+                                              x: newAnnotation.x,
+                                              y: newAnnotation.y,
+                                              comment: comment.trim()
+                                            }]);
+                                          }
+                                          setNewAnnotation(null);
+                                        } else if (e.key === 'Escape') {
+                                          setNewAnnotation(null);
+                                        }
+                                      }}
+                                    />
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      Press Enter to save, Esc to cancel
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        {/* Feedback Panel */}
+                        <div className="space-y-4">
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-lg">Annotations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3 max-h-48 overflow-y-auto">
+                                {annotations.length === 0 ? (
+                                  <p className="text-sm text-muted-foreground">No annotations yet. Click on the design to add some.</p>
+                                ) : (
+                                  annotations.map((annotation, index) => (
+                                    <div key={annotation.id} className="flex gap-3 p-2 bg-muted/50 rounded-lg">
+                                      <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                        {index + 1}
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm">{annotation.comment}</p>
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-lg">Overall Feedback</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <Textarea
+                                placeholder="Add your overall feedback about this design..."
+                                value={feedback}
+                                onChange={(e) => setFeedback(e.target.value)}
+                                rows={4}
+                              />
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setFeedback('');
+                                    setAnnotations([]);
+                                    toast({
+                                      title: "Feedback saved",
+                                      description: "Your feedback has been saved as draft.",
+                                    });
+                                  }}
+                                >
+                                  Save Draft
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() => {
+                                    toast({
+                                      title: "Design Approved",
+                                      description: "The latest design has been approved successfully.",
+                                    });
+                                    setFeedback('');
+                                    setAnnotations([]);
+                                  }}
+                                >
+                                  Approve Design
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                    </TabsContent>
 
-                <TabsContent value="design" className="mt-6 space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>Design Assets</CardTitle>
-                          <CardDescription>View and manage design files and prototypes</CardDescription>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
-                              SC
+                    {/* Version 2 Tab */}
+                    <TabsContent value="v2" className="mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Palette className="h-5 w-5" />
+                            Design Version 2.1
+                          </CardTitle>
+                          <CardDescription>Previous version of the design (Read-only)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="w-full h-96 bg-muted rounded-lg overflow-hidden">
+                            <div className="w-full h-full bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
+                              <div className="text-center text-muted-foreground">
+                                <Palette className="h-16 w-16 mx-auto mb-4" />
+                                <p className="text-lg font-medium">Design Version 2</p>
+                                <p className="text-sm">Archived design - view only</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                            <h4 className="font-medium mb-2">Version Notes</h4>
+                            <p className="text-sm text-muted-foreground">
+                              This version included the client's initial feedback on color scheme and layout adjustments.
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Version 1 Tab */}
+                    <TabsContent value="v1" className="mt-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Palette className="h-5 w-5" />
+                            Design Version 1.0
+                          </CardTitle>
+                          <CardDescription>Initial design concept (Read-only)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="w-full h-96 bg-muted rounded-lg overflow-hidden">
+                            <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                              <div className="text-center text-muted-foreground">
+                                <Palette className="h-16 w-16 mx-auto mb-4" />
+                                <p className="text-lg font-medium">Design Version 1</p>
+                                <p className="text-sm">Original concept - view only</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                            <h4 className="font-medium mb-2">Version Notes</h4>
+                            <p className="text-sm text-muted-foreground">
+                              The initial design concept based on the client brief and brand guidelines.
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Contract Tab */}
+                    <TabsContent value="contract" className="mt-6 space-y-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Contract Management</CardTitle>
+                          <CardDescription>View contract attachments and manage signatures</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-6">
+                            {/* Contract Documents */}
+                            <div>
+                              <h4 className="font-medium mb-3">Contract Documents</h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-4 border rounded-lg">
+                                  <div className="flex items-center gap-3">
+                                    <File className="h-8 w-8 text-muted-foreground" />
+                                    <div>
+                                      <p className="font-medium">Project Agreement - {selectedProject.name}</p>
+                                      <p className="text-sm text-muted-foreground">PDF • 2.4 MB • Updated 3 days ago</p>
+                                    </div>
+                                  </div>
+                                  <Button variant="outline" size="sm">
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+
+                    <TabsContent value="shipment" className="mt-6 space-y-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Shipment Information</CardTitle>
+                          <CardDescription>Track delivery and logistics details</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 gap-6">
+                            <div>
+                              <h4 className="font-medium mb-3">Shipping Address</h4>
+                              <div className="space-y-1 text-sm text-muted-foreground">
+                                <p>{user?.user_metadata?.company || selectedProject.client}</p>
+                                <p>123 Business Avenue</p>
+                                <p>Suite 100</p>
+                                <p>New York, NY 10001</p>
+                                <p>United States</p>
+                              </div>
                             </div>
                             <div>
-                              <p className="font-medium text-sm">Sarah Chen</p>
-                              <p className="text-xs text-muted-foreground">Lead Designer</p>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate('/chat')}
-                          >
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Contact
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="border-2 border-dashed border-muted rounded-lg p-8 text-center">
-                          <Palette className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="font-medium mb-2">Design Concepts</h3>
-                          <p className="text-sm text-muted-foreground mb-4">3 design variations uploaded</p>
-                          <Button variant="outline" size="sm" onClick={() => setIsConceptsOpen(true)}>View Concepts</Button>
-                        </div>
-                        <div className="border-2 border-dashed border-muted rounded-lg p-8 text-center">
-                          <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="font-medium mb-2">3D Prototypes</h3>
-                          <p className="text-sm text-muted-foreground mb-4">2 prototypes ready</p>
-                          <Button variant="outline" size="sm">View Prototypes</Button>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h4 className="font-medium mb-3">Recent Activity</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                            <div className="h-2 w-2 bg-primary rounded-full"></div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">Design concept v3 uploaded</p>
-                              <p className="text-xs text-muted-foreground">2 hours ago</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                            <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">Client feedback received</p>
-                              <p className="text-xs text-muted-foreground">1 day ago</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="contract" className="mt-6 space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Contract Management</CardTitle>
-                      <CardDescription>View contract attachments and manage signatures</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        {/* Contract Documents */}
-                        <div>
-                          <h4 className="font-medium mb-3">Contract Documents</h4>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between p-4 border rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <File className="h-8 w-8 text-muted-foreground" />
-                                <div>
-                                  <p className="font-medium">Project Agreement - {selectedProject.name}</p>
-                                  <p className="text-sm text-muted-foreground">PDF • 2.4 MB • Updated 3 days ago</p>
+                              <h4 className="font-medium mb-3">Delivery Details</h4>
+                              <div className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">Estimated Delivery:</span>
+                                  <span className="text-sm font-medium">{new Date(selectedProject.due_date).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">Shipping Method:</span>
+                                  <span className="text-sm font-medium">Express Delivery</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">Tracking Number:</span>
+                                  <span className="text-sm font-medium">PKG{selectedProject.id}2024001</span>
                                 </div>
                               </div>
-                              <Button variant="outline" size="sm">
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                              </Button>
-                            </div>
-                            
-                            <div className="flex items-center justify-between p-4 border rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <File className="h-8 w-8 text-muted-foreground" />
-                                <div>
-                                  <p className="font-medium">Terms & Conditions</p>
-                                  <p className="text-sm text-muted-foreground">PDF • 1.8 MB • Updated 1 week ago</p>
-                                </div>
-                              </div>
-                              <Button variant="outline" size="sm">
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                              </Button>
-                            </div>
-                            
-                            <div className="flex items-center justify-between p-4 border rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <File className="h-8 w-8 text-muted-foreground" />
-                                <div>
-                                  <p className="font-medium">Statement of Work</p>
-                                  <p className="text-sm text-muted-foreground">PDF • 3.1 MB • Updated 5 days ago</p>
-                                </div>
-                              </div>
-                              <Button variant="outline" size="sm">
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                              </Button>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Signature Management */}
-                        <div>
-                          <h4 className="font-medium mb-3">Digital Signatures</h4>
-                          <div className="grid grid-cols-1 gap-4">
-                            <Card>
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <h5 className="font-medium">Company Signature</h5>
-                                  <div className={`w-3 h-3 rounded-full ${
-                                    selectedProject.name === "Organic Tea Collection" || selectedProject.name === "Luxury Perfume Box" 
-                                      ? "bg-red-500" 
-                                      : "bg-green-500"
-                                  }`}></div>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                  Status: {selectedProject.name === "Organic Tea Collection" || selectedProject.name === "Luxury Perfume Box" ? "Pending Upload" : "Completed"}<br />
-                                  Required by: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                                </p>
-                                <div className="space-y-2">
-                                  {selectedProject.name === "Organic Tea Collection" || selectedProject.name === "Luxury Perfume Box" ? (
-                                    <Button 
-                                      size="sm" 
-                                      className="w-full"
-                                      onClick={() => {
-                                        const input = document.createElement('input');
-                                        input.type = 'file';
-                                        input.accept = '.pdf,.jpg,.jpeg,.png';
-                                        input.onchange = (e) => {
-                                          const file = (e.target as HTMLInputElement).files?.[0];
-                                          if (file) {
-                                            console.log('Signature file uploaded:', file.name);
-                                            // Handle file upload logic here
-                                          }
-                                        };
-                                        input.click();
-                                      }}
-                                    >
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Upload Signature
-                                    </Button>
-                                  ) : (
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      className="w-full"
-                                      onClick={() => {
-                                        // Handle signature download logic here
-                                        console.log('Downloading signature...');
-                                      }}
-                                    >
-                                      <Download className="h-4 w-4 mr-2" />
-                                      Download Signature
-                                    </Button>
-                                  )}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        </div>
-
-                        {/* Contract Status */}
-                        <div>
-                          <h4 className="font-medium mb-3">Contract Status</h4>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                                <span className="text-sm font-medium">Contract Created</span>
-                              </div>
-                              <span className="text-sm text-muted-foreground">{new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                                <span className="text-sm font-medium">Client Signature Received</span>
-                              </div>
-                              <span className="text-sm text-muted-foreground">{new Date().toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
-                                <span className="text-sm font-medium">Awaiting Company Signature</span>
-                              </div>
-                              <span className="text-sm text-muted-foreground">Pending</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="shipment" className="mt-6 space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Shipment Information</CardTitle>
-                      <CardDescription>Track delivery and logistics details</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="font-medium mb-3">Shipping Address</h4>
-                          <div className="space-y-1 text-sm text-muted-foreground">
-                            <p>{user?.user_metadata?.company || selectedProject.client}</p>
-                            <p>123 Business Avenue</p>
-                            <p>Suite 100</p>
-                            <p>New York, NY 10001</p>
-                            <p>United States</p>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-medium mb-3">Delivery Details</h4>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Estimated Delivery:</span>
-                              <span className="text-sm font-medium">{new Date(selectedProject.due_date).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Shipping Method:</span>
-                              <span className="text-sm font-medium">Express Delivery</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Tracking Number:</span>
-                              <span className="text-sm font-medium">PKG{selectedProject.id}2024001</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-6">
-                        <h4 className="font-medium mb-3">Shipment Status</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                            <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-green-900">Package Prepared</p>
-                              <p className="text-xs text-green-700">Ready for shipping</p>
-                            </div>
-                            <span className="text-xs text-green-700">Dec 15, 2023</span>
-                          </div>
-                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                            <div className="h-3 w-3 bg-muted-foreground rounded-full"></div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">In Transit</p>
-                              <p className="text-xs text-muted-foreground">Pending shipment</p>
-                            </div>
-                            <span className="text-xs text-muted-foreground">Pending</span>
-                          </div>
-                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                            <div className="h-3 w-3 bg-muted-foreground rounded-full"></div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">Delivered</p>
-                              <p className="text-xs text-muted-foreground">Final delivery</p>
-                            </div>
-                            <span className="text-xs text-muted-foreground">Pending</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                 </TabsContent>
-               </Tabs>
-             )}
-           </SheetContent>
-         </Sheet>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
 
          {/* Concepts View Sheet */}
          <Sheet open={isConceptsOpen} onOpenChange={setIsConceptsOpen}>
