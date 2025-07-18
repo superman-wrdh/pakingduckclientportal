@@ -35,7 +35,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
     dueDate: undefined as Date | undefined,
   });
   const [designs, setDesigns] = useState<Design[]>([
-    { name: "", description: "", attachments: [] }
+    { name: "Design 1", description: "", attachments: [] }
   ]);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -163,7 +163,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
           client: user?.user_metadata?.company || "ING BANK",
           dueDate: undefined,
         });
-        setDesigns([{ name: "", description: "", attachments: [] }]);
+        setDesigns([{ name: "Design 1", description: "", attachments: [] }]);
         setOpen(false);
       }
     } catch (error) {
@@ -183,7 +183,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
   };
 
   const addDesign = () => {
-    setDesigns(prev => [...prev, { name: "", description: "", attachments: [] }]);
+    setDesigns(prev => [...prev, { name: `Design ${prev.length + 1}`, description: "", attachments: [] }]);
   };
 
   const removeDesign = (index: number) => {
