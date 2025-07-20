@@ -113,6 +113,20 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
             continue;
           }
 
+          // Also create entry in designs table
+          const { error: designTableError } = await supabase
+            .from('designs')
+            .insert({
+              project_id: newProject.id,
+              name: design.name,
+              description: design.description || null,
+              user_id: user?.id
+            });
+
+          if (designTableError) {
+            console.error('Error creating design:', designTableError);
+          }
+
           // Upload attachments for this design
           if (design.attachments.length > 0) {
             for (const file of design.attachments) {
