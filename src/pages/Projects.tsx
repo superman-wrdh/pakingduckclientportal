@@ -551,18 +551,32 @@ const Projects = () => {
                             {currentView === "completed" ? "Completed: " : "Due: "}
                             {new Date(project.dueDate).toLocaleDateString()}
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedProject(project);
-                              setIsSheetOpen(true);
-                            }}
-                            className="w-full flex items-center gap-2"
-                          >
-                            <Eye className="h-4 w-4" />
-                            View Details
-                          </Button>
+                           <div className="flex gap-2">
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               className="flex-1 flex items-center gap-1"
+                             >
+                               <Palette className="h-4 w-4" />
+                               Design
+                             </Button>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               className="flex-1 flex items-center gap-1"
+                             >
+                               <FileText className="h-4 w-4" />
+                               Contract
+                             </Button>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               className="flex-1 flex items-center gap-1"
+                             >
+                               <Truck className="h-4 w-4" />
+                               Shipment
+                             </Button>
+                           </div>
                         </CardContent>
                       </Card>
                     ))}
