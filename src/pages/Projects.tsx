@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Package, Eye, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Truck, Palette, MessageSquare, FileText, Download, Upload, File, Loader2, Edit, Trash2 } from "lucide-react";
+import { Calendar, Package, Eye, ArrowLeft, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Truck, Palette, MessageSquare, FileText, Download, Upload, File, Loader2, Edit, Trash2, Plus } from "lucide-react";
 import { NewProjectSheet } from "@/components/NewProjectSheet";
+import { DesignSection } from "@/components/projects/DesignSection";
 import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useProjects } from "@/hooks/useProjects";
@@ -25,7 +26,7 @@ const Projects = () => {
   const { toast } = useToast();
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
-  const { designs, getLatestDesign, getPastDesigns } = useDesigns(selectedProject?.id);
+  const { designs, getLatestDesign, getPastDesigns, createDesignVersion } = useDesigns(selectedProject?.id);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -44,6 +45,12 @@ const Projects = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: "", description: "" });
+  
+  // Add Design states
+  const [isAddDesignDialogOpen, setIsAddDesignDialogOpen] = useState(false);
+  const [addDesignProject, setAddDesignProject] = useState<any>(null);
+  const [addDesignForm, setAddDesignForm] = useState({ name: "", description: "", attachments: [] as File[] });
+  const [isAddingDesign, setIsAddingDesign] = useState(false);
   
   const location = useLocation();
   
@@ -118,6 +125,38 @@ const Projects = () => {
         description: "Failed to delete project",
         variant: "destructive",
       });
+    }
+  };
+
+  // Handle add design
+  const handleAddDesign = async () => {
+    if (!addDesignProject || !addDesignForm.name.trim()) return;
+    
+    setIsAddingDesign(true);
+    try {
+      await createDesignVersion({
+        project_id: addDesignProject.id,
+        name: addDesignForm.name,
+        description: addDesignForm.description,
+        attachments: addDesignForm.attachments
+      });
+      
+      toast({
+        title: "Success",
+        description: "Design added successfully",
+      });
+      
+      setIsAddDesignDialogOpen(false);
+      setAddDesignProject(null);
+      setAddDesignForm({ name: "", description: "", attachments: [] });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add design",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingDesign(false);
     }
   };
 
@@ -301,29 +340,6 @@ const Projects = () => {
             </div>
           </div>
 
-          {/* Statistics - Only show on overview */}
-          {currentView === "overview" && (
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-foreground">{projects.length}</div>
-                  <p className="text-sm text-muted-foreground">Total Projects</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-foreground">$24,500</div>
-                  <p className="text-sm text-muted-foreground">Total Expenses</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-2xl font-bold text-foreground">{projects.filter(p => p.status === "completed").length}</div>
-                  <p className="text-sm text-muted-foreground">Completed This Month</p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
 
           {/* Projects Display */}
           {currentView === "overview" ? (
@@ -389,6 +405,23 @@ const Projects = () => {
                               </TableCell>
                                 <TableCell className="text-right">
                                   <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setAddDesignProject(project);
+                                        setAddDesignForm({ 
+                                          name: "", 
+                                          description: "", 
+                                          attachments: [] 
+                                        });
+                                        setIsAddDesignDialogOpen(true);
+                                      }}
+                                      className="h-8 w-8 p-0"
+                                      title="Add Design"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
                                     {project.status === "project initiation" && (
                                       <Button
                                         variant="ghost"
@@ -398,6 +431,7 @@ const Projects = () => {
                                           setIsDeleteDialogOpen(true);
                                         }}
                                         className="h-8 w-8 p-0"
+                                        title="Delete Project"
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </Button>
@@ -1540,6 +1574,42 @@ const Projects = () => {
                 </Button>
                 <Button variant="destructive" onClick={handleDeleteProject}>
                   Delete Project
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Add Design Dialog */}
+          <Dialog open={isAddDesignDialogOpen} onOpenChange={setIsAddDesignDialogOpen}>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Add New Design</DialogTitle>
+                <DialogDescription>
+                  Add a new design to "{addDesignProject?.name}" project.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <DesignSection
+                  design={addDesignForm}
+                  onUpdate={(design) => setAddDesignForm(design)}
+                  onRemove={() => {}}
+                  canRemove={false}
+                  designNumber={1}
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddDesignDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddDesign} disabled={isAddingDesign || !addDesignForm.name.trim()}>
+                  {isAddingDesign ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    "Add Design"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
