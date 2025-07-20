@@ -387,11 +387,23 @@ const Projects = () => {
                                   {new Date(project.due_date).toLocaleDateString()}
                                 </div>
                               </TableCell>
-                               <TableCell className="text-right">
-                                 <div className="flex items-center justify-end gap-2">
-                                   {/* Actions removed per user request */}
-                                 </div>
-                               </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    {project.status === "project initiation" && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setEditingProject(project);
+                                          setIsDeleteDialogOpen(true);
+                                        }}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </TableCell>
                            </TableRow>
                          ))}
                        </TableBody>
