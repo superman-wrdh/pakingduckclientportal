@@ -63,7 +63,7 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       // Update user metadata in Supabase
-      const { error } = await supabase.auth.updateUser({
+      const { error: authError } = await supabase.auth.updateUser({
         data: {
           company: editedProfile.name,
           industry: editedProfile.industry,
@@ -77,13 +77,29 @@ const Profile = () => {
         }
       });
 
-      if (error) {
+      if (authError) {
         toast({
           title: "Error",
           description: "Failed to update profile. Please try again.",
           variant: "destructive"
         });
         return;
+      }
+
+      // Sync data to client_profiles table
+      const { error: profileError } = await supabase
+        .from('client_profiles')
+        .upsert({
+          user_id: user?.id,
+          company_name: editedProfile.name,
+          contact_name: editedProfile.contactPerson,
+          email: editedProfile.email,
+          phone: editedProfile.phone
+        });
+
+      if (profileError) {
+        console.error('Error syncing to client_profiles:', profileError);
+        // Don't show error to user since auth metadata was updated successfully
       }
 
       toast({
