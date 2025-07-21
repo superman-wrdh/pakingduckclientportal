@@ -90,41 +90,44 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
       const newProject = await createProject(projectData);
       
       if (newProject) {
-        // Create design versions for each design
+        // Create designs for each design
         for (let i = 0; i < validDesigns.length; i++) {
           const design = validDesigns[i];
           
-          // Create design version
-          const { data: designVersion, error: designError } = await supabase
-            .from('design_versions')
-            .insert({
-              project_id: newProject.id,
-              name: design.name,
-              description: design.description || null,
-              version_number: i + 1,
-              is_latest: true,
-              user_id: user?.id
-            })
-            .select()
-            .single();
-
-          if (designError) {
-            console.error('Error creating design version:', designError);
-            continue;
-          }
-
-          // Also create entry in designs table
-          const { error: designTableError } = await supabase
+          // Create design entry in designs table
+          const { data: designData, error: designError } = await supabase
             .from('designs')
             .insert({
               project_id: newProject.id,
               name: design.name,
               description: design.description || null,
               user_id: user?.id
-            });
+            })
+            .select()
+            .single();
 
-          if (designTableError) {
-            console.error('Error creating design:', designTableError);
+          if (designError) {
+            console.error('Error creating design:', designError);
+            continue;
+          }
+
+          // Create initial design version for this design
+          const { data: designVersion, error: versionError } = await supabase
+            .from('design_versions')
+            .insert({
+              project_id: newProject.id,
+              name: design.name,
+              description: design.description || null,
+              version_number: 1,
+              is_latest: true,
+              user_id: user?.id
+            })
+            .select()
+            .single();
+
+          if (versionError) {
+            console.error('Error creating design version:', versionError);
+            continue;
           }
 
           // Upload attachments for this design
