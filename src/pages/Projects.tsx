@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useProjects } from "@/hooks/useProjects";
 import { useDesigns } from "@/hooks/useDesigns";
+import { useProjectDesigns } from "@/hooks/useProjectDesigns";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,6 +28,7 @@ const Projects = () => {
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const { designs, getLatestDesign, getPastDesigns, createDesignVersion } = useDesigns(selectedProject?.id);
+  const { designs: projectDesigns, loading: projectDesignsLoading } = useProjectDesigns(selectedProject?.id);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -704,6 +706,64 @@ const Projects = () => {
                     <div className="mt-4">
                       <h4 className="text-sm font-medium text-muted-foreground mb-2">Description</h4>
                       <p className="text-muted-foreground leading-relaxed">{selectedProject.description}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Project Designs Section */}
+                <div className="bg-card rounded-lg border p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">Project Designs</h2>
+                    <span className="text-sm text-muted-foreground">
+                      {projectDesigns.length} design{projectDesigns.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  
+                  {projectDesignsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <span className="ml-2">Loading designs...</span>
+                    </div>
+                  ) : projectDesigns.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Palette className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">No designs found</h3>
+                      <p className="text-muted-foreground">This project doesn't have any designs yet.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {projectDesigns.map((design) => (
+                        <Card key={design.id} className="hover:shadow-md transition-shadow">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <Palette className="h-5 w-5 text-primary" />
+                              {design.name}
+                            </CardTitle>
+                            {design.description && (
+                              <CardDescription className="text-sm">
+                                {design.description}
+                              </CardDescription>
+                            )}
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>Created: {new Date(design.created_at).toLocaleDateString()}</span>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  // Open design versions for this specific design
+                                  setSelectedProject(selectedProject);
+                                  setIsSheetOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Versions
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                   )}
                 </div>
