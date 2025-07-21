@@ -26,10 +26,10 @@ const Projects = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { projects, loading, createProject, updateProject, deleteProject, refetch: refetchProjects } = useProjects();
+  const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const { designs, getLatestDesign, getPastDesigns, createDesignVersion } = useDesigns(selectedProject?.id);
-  const { designs: projectDesigns, loading: projectDesignsLoading, refetch: refetchProjectDesigns } = useProjectDesigns(selectedProject?.id);
+  const { designs: projectDesigns, loading: projectDesignsLoading } = useProjectDesigns(selectedProject?.id);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -155,10 +155,6 @@ const Projects = () => {
         title: "Success",
         description: "Design added successfully",
       });
-      
-      // Refetch projects to update design counts
-      refetchProjects();
-      refetchProjectDesigns();
       
       setIsAddDesignDialogOpen(false);
       setAddDesignProject(null);
@@ -379,7 +375,6 @@ const Projects = () => {
                             <TableRow>
                               <TableHead>Project Name</TableHead>
                               <TableHead>Client</TableHead>
-                              <TableHead>Designer</TableHead>
                               <TableHead>Type</TableHead>
                               <TableHead>Status</TableHead>
                               <TableHead>Due Date</TableHead>
@@ -389,34 +384,24 @@ const Projects = () => {
                           <TableBody>
                             {getPaginatedProjects().projects.map((project) => (
                             <TableRow key={project.id}>
-                              <TableCell className="font-medium">
-                                  <div className="flex flex-col">
-                                    <button 
-                                      onClick={() => {
-                                        setSelectedProject(project);
-                                        setIsSheetOpen(true);
-                                      }}
-                                      className="text-primary hover:text-primary/80 hover:underline transition-colors cursor-pointer bg-transparent border-none p-0 font-inherit text-left"
-                                    >
-                                      {project.name}
-                                    </button>
-                                    <span className="text-sm text-muted-foreground">
-                                      {project.design_count?.[0]?.count || 0} design(s)
-                                    </span>
-                                  </div>
-                                </TableCell>
-                              <TableCell>{user?.user_metadata?.company || project.client}</TableCell>
-                              <TableCell>
-                                <div className="text-sm">
-                                  {project.designer || 'Not assigned'}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  <Package className="h-4 w-4 mr-2 text-muted-foreground" />
-                                  {project.type}
-                                </div>
-                              </TableCell>
+                               <TableCell className="font-medium">
+                                 <button 
+                                   onClick={() => {
+                                     setSelectedProject(project);
+                                     setIsSheetOpen(true);
+                                   }}
+                                   className="text-primary hover:text-primary/80 hover:underline transition-colors cursor-pointer bg-transparent border-none p-0 font-inherit text-left"
+                                 >
+                                   {project.name}
+                                 </button>
+                               </TableCell>
+                             <TableCell>{user?.user_metadata?.company || project.client}</TableCell>
+                             <TableCell>
+                               <div className="flex items-center">
+                                 <Package className="h-4 w-4 mr-2 text-muted-foreground" />
+                                 {project.type}
+                               </div>
+                             </TableCell>
                              <TableCell>
                                <Badge className={getStatusColor(project.status)}>
                                  {project.status}
