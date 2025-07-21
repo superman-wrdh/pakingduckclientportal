@@ -20,6 +20,7 @@ import { useDesigns } from "@/hooks/useDesigns";
 import { useProjectDesigns } from "@/hooks/useProjectDesigns";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -136,12 +137,19 @@ const Projects = () => {
     
     setIsAddingDesign(true);
     try {
-      await createDesignVersion({
-        project_id: addDesignProject.id,
-        name: addDesignForm.name,
-        description: addDesignForm.description,
-        attachments: addDesignForm.attachments
-      });
+      // First create design in designs table
+      const { data: designData, error: designError } = await supabase
+        .from('designs')
+        .insert({
+          project_id: addDesignProject.id,
+          name: addDesignForm.name,
+          description: addDesignForm.description || null,
+          user_id: user?.id
+        })
+        .select()
+        .single();
+
+      if (designError) throw designError;
       
       toast({
         title: "Success",
