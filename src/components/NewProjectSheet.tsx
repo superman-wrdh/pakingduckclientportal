@@ -116,6 +116,7 @@ export function NewProjectSheet({ children }: NewProjectSheetProps) {
             .from('design_versions')
             .insert({
               project_id: newProject.id,
+              design_id: designData.id,
               name: design.name,
               description: design.description || null,
               version_number: 1,
