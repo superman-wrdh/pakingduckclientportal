@@ -111,6 +111,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          design_id: string | null
           id: string
           is_latest: boolean
           name: string
@@ -122,6 +123,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          design_id?: string | null
           id?: string
           is_latest?: boolean
           name: string
@@ -133,6 +135,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          design_id?: string | null
           id?: string
           is_latest?: boolean
           name?: string
@@ -149,7 +152,50 @@ export type Database = {
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_design_versions_design_id"
+            columns: ["design_id"]
+            isOneToOne: false
+            referencedRelation: "designs"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      designer_profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          location: string | null
+          name: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       designs: {
         Row: {
@@ -446,6 +492,7 @@ export type Database = {
           client: string
           created_at: string
           description: string | null
+          designer: string | null
           due_date: string
           id: string
           name: string
@@ -458,6 +505,7 @@ export type Database = {
           client: string
           created_at?: string
           description?: string | null
+          designer?: string | null
           due_date: string
           id?: string
           name: string
@@ -470,6 +518,7 @@ export type Database = {
           client?: string
           created_at?: string
           description?: string | null
+          designer?: string | null
           due_date?: string
           id?: string
           name?: string
