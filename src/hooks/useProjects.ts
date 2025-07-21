@@ -13,6 +13,9 @@ export interface Project {
   created_at: string;
   updated_at: string;
   description?: string;
+  designer?: string;
+  designer_id?: string;
+  design_count?: Array<{ count: number }>;
 }
 
 export interface CreateProjectData {
@@ -33,7 +36,10 @@ export const useProjects = () => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select(`
+          *,
+          design_count:designs(count)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
